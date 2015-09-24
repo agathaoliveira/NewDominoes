@@ -1,123 +1,143 @@
+var Tile = (function () {
+    function Tile(left, right) {
+        this.leftNumber = left;
+        this.rightNumber = right;
+        this.isDouble = left === right;
+        this.validForTiles = [false, false, false, false, false, false];
+        this.validForTiles[left] = true;
+        this.validForTiles[right] = true;
+    }
+    return Tile;
+})();
+var Board = (function () {
+    function Board() {
+    }
+    Board.prototype.setRoot = function (tile) {
+        this.root = tile;
+        this.leftMost = tile;
+        this.rightMost = tile;
+    };
+    return Board;
+})();
+var Play;
+(function (Play) {
+    Play[Play["LEFT"] = 0] = "LEFT";
+    Play[Play["RIGHT"] = 1] = "RIGHT";
+    Play[Play["CENTER"] = 2] = "CENTER";
+    Play[Play["BUY"] = 3] = "BUY";
+})(Play || (Play = {}));
+var BoardDelta = (function () {
+    function BoardDelta() {
+    }
+    return BoardDelta;
+})();
+var Player = (function () {
+    function Player(playerId) {
+        this.id = playerId;
+    }
+    Player.prototype.addTileToHand = function (tile) {
+        this.hand[this.hand.length] = tile;
+    };
+    Player.prototype.removeTileFromHand = function (tile) {
+        var index = this.hand.indexOf(tile, 0);
+        if (index != undefined) {
+            this.hand.splice(index, 1);
+        }
+        else {
+            throw new Error("Player " + this.id + " does not have tile " + tile.leftNumber + "|" + tile.rightNumber);
+        }
+    };
+    Player.prototype.getNumberOfRemainingTiles = function () {
+        return this.hand.length;
+    };
+    Player.prototype.hasTileWithNumbers = function (firstNumber, secondNumber) {
+        for (var i = 0; i < this.hand.length; i++) {
+            if (this.hand[i].validForTiles[firstNumber] || this.hand[i].validForTiles[secondNumber]) {
+                return true;
+            }
+        }
+        return false;
+    };
+    return Player;
+})();
 var gameLogic;
 (function (gameLogic) {
-    gameLogic.ROWS = 3;
-    gameLogic.COLS = 3;
-    /** Returns the initial TicTacToe board, which is a ROWSxCOLS matrix containing ''. */
     function getInitialBoard() {
-        var board = [];
-        for (var i = 0; i < gameLogic.ROWS; i++) {
-            board[i] = [];
-            for (var j = 0; j < gameLogic.COLS; j++) {
-                board[i][j] = '';
-            }
-        }
-        return board;
+        return new Board();
     }
     gameLogic.getInitialBoard = getInitialBoard;
-    /**
-     * Returns true if the game ended in a tie because there are no empty cells.
-     * E.g., isTie returns true for the following board:
-     *     [['X', 'O', 'X'],
-     *      ['X', 'O', 'O'],
-     *      ['O', 'X', 'X']]
-     */
-    function isTie(board) {
-        for (var i = 0; i < gameLogic.ROWS; i++) {
-            for (var j = 0; j < gameLogic.COLS; j++) {
-                if (board[i][j] === '') {
-                    // If there is an empty cell then we do not have a tie.
-                    return false;
-                }
+    function getWinner(tile, currentPlayer) {
+        currentPlayer.removeTileFromHand(tile);
+        if (currentPlayer.getNumberOfRemainingTiles() === 0) {
+            return currentPlayer.id;
+        }
+        return undefined;
+    }
+    function isTie(board, players, house) {
+        var leftTile = board.leftMost;
+        var rightTile = board.rightMost;
+        if (house.hasTileWithNumbers(board.leftMost.leftNumber, board.rightMost.rightNumber)) {
+            return false;
+        }
+        for (var i = 0; i < players.length; i++) {
+            if (players[i].hasTileWithNumbers(board.leftMost.leftNumber, board.rightMost.rightNumber)) {
+                return false;
             }
         }
-        // No empty cells, so we have a tie!
         return true;
     }
     /**
-     * Return the winner (either 'X' or 'O') or '' if there is no winner.
-     * The board is a matrix of size 3x3 containing either 'X', 'O', or ''.
-     * E.g., getWinner returns 'X' for the following board:
-     *     [['X', 'O', ''],
-     *      ['X', 'O', ''],
-     *      ['X', '', '']]
-     */
-    function getWinner(board) {
-        var boardString = '';
-        for (var i = 0; i < gameLogic.ROWS; i++) {
-            for (var j = 0; j < gameLogic.COLS; j++) {
-                var cell = board[i][j];
-                boardString += cell === '' ? ' ' : cell;
-            }
-        }
-        var win_patterns = [
-            'XXX......',
-            '...XXX...',
-            '......XXX',
-            'X..X..X..',
-            '.X..X..X.',
-            '..X..X..X',
-            'X...X...X',
-            '..X.X.X..'
-        ];
-        for (var _i = 0; _i < win_patterns.length; _i++) {
-            var win_pattern = win_patterns[_i];
-            var x_regexp = new RegExp(win_pattern);
-            var o_regexp = new RegExp(win_pattern.replace(/X/g, 'O'));
-            if (x_regexp.test(boardString)) {
-                return 'X';
-            }
-            if (o_regexp.test(boardString)) {
-                return 'O';
-            }
-        }
-        return '';
-    }
-    /**
-     * Returns all the possible moves for the given board and turnIndexBeforeMove.
-     * Returns an empty array if the game is over.
-     */
-    function getPossibleMoves(board, turnIndexBeforeMove) {
-        var possibleMoves = [];
-        for (var i = 0; i < gameLogic.ROWS; i++) {
-            for (var j = 0; j < gameLogic.COLS; j++) {
-                try {
-                    possibleMoves.push(createMove(board, i, j, turnIndexBeforeMove));
-                }
-                catch (e) {
-                }
-            }
-        }
-        return possibleMoves;
-    }
-    gameLogic.getPossibleMoves = getPossibleMoves;
-    /**
-     * Returns the move that should be performed when player
-     * with index turnIndexBeforeMove makes a move in cell row X col.
-     */
-    function createMove(board, row, col, turnIndexBeforeMove) {
+    * Returns the move that should be performed when player
+    * with index turnIndexBeforeMove makes adds a domino to the board.
+    */
+    function createMove(board, tile, play, turnIndexBeforeMove, players, house) {
         if (!board) {
             // Initially (at the beginning of the match), the board in state is undefined.
             board = getInitialBoard();
         }
-        if (board[row][col] !== '') {
-            throw new Error("One can only make a move in an empty position!");
-        }
-        if (getWinner(board) !== '' || isTie(board)) {
-            throw new Error("Can only make a move if the game is not over!");
-        }
         var boardAfterMove = angular.copy(board);
-        boardAfterMove[row][col] = turnIndexBeforeMove === 0 ? 'X' : 'O';
-        var winner = getWinner(boardAfterMove);
+        if (!board.root) {
+            if (play !== Play.CENTER) {
+                throw new Error("One cannot make a non center play in a board with no first tile!");
+            }
+            boardAfterMove.setRoot(tile);
+            players[turnIndexBeforeMove].removeTileFromHand(tile);
+        }
+        else {
+            if (!board.leftMost || !board.rightMost) {
+                throw new Error("One cannot make a move in a board with no pieces on the left or right sides!");
+            }
+            if (Play.LEFT === play) {
+                boardAfterMove.leftMost.leftChild = tile;
+                boardAfterMove.leftMost = tile;
+            }
+            else if (Play.RIGHT === play) {
+                boardAfterMove.rightMost.rightChild = tile;
+                boardAfterMove.rightMost = tile;
+            }
+            else if (Play.BUY === play) {
+                if (house.getNumberOfRemainingTiles() === 0) {
+                    throw new Error("One cannot buy from the house when it has no tiles");
+                }
+                var tile = house.hand[Math.floor(Math.random() * house.hand.length)];
+                house.removeTileFromHand(tile);
+                players[turnIndexBeforeMove].addTileToHand(tile);
+            }
+            else {
+                throw new Error("One cannot make a center move on a board that already has a tile");
+            }
+        }
+        var winner = getWinner(tile, players[turnIndexBeforeMove]);
         var firstOperation;
-        if (winner !== '' || isTie(boardAfterMove)) {
+        if (!winner || isTie(boardAfterMove, players, house)) {
             // Game over.
-            firstOperation = { endMatch: { endMatchScores: winner === 'X' ? [1, 0] : winner === 'O' ? [0, 1] : [0, 0] } };
+            firstOperation = { endMatch: { endMatchScores: winner ? [winner] : [-1] } };
         }
         else {
             // Game continues. Now it's the opponent's turn (the turn switches from 0 to 1 and 1 to 0).
             firstOperation = { setTurn: { turnIndex: 1 - turnIndexBeforeMove } };
         }
-        var delta = { row: row, col: col };
+        var delta = { tile: tile, play: play };
         return [firstOperation,
             { set: { key: 'board', value: boardAfterMove } },
             { set: { key: 'delta', value: delta } }];
@@ -127,21 +147,19 @@ var gameLogic;
         var move = params.move;
         var turnIndexBeforeMove = params.turnIndexBeforeMove;
         var stateBeforeMove = params.stateBeforeMove;
-        // The state and turn after move are not needed in TicTacToe (or in any game where all state is public).
-        //let turnIndexAfterMove = params.turnIndexAfterMove;
-        //let stateAfterMove = params.stateAfterMove;
+        // The state and turn after move are not needed in dominoes
+        //var turnIndexAfterMove = params.turnIndexAfterMove;
+        //var stateAfterMove = params.stateAfterMove;
         // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
         // to verify that move is legal.
         try {
-            // Example move:
-            // [{setTurn: {turnIndex : 1},
-            //  {set: {key: 'board', value: [['X', '', ''], ['', '', ''], ['', '', '']]}},
-            //  {set: {key: 'delta', value: {row: 0, col: 0}}}]
             var deltaValue = move[2].set.value;
-            var row = deltaValue.row;
-            var col = deltaValue.col;
+            var tile = deltaValue.tile;
+            var play = deltaValue.play;
             var board = stateBeforeMove.board;
-            var expectedMove = createMove(board, row, col, turnIndexBeforeMove);
+            var players = stateBeforeMove.players;
+            var house = stateBeforeMove.house;
+            var expectedMove = createMove(board, tile, play, turnIndexBeforeMove, players, house);
             if (!angular.equals(move, expectedMove)) {
                 return false;
             }
