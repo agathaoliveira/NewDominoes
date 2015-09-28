@@ -3,6 +3,11 @@ interface ITile {
   rightNumber: number;
 }
 
+/*The domino board is stored as a binary tree. Children are added either to the
+*left most position or the right most, since on the game rules, the dominos are
+*only played to the left or the right. An array is used to store the tree nodes.
+*The numbers on the array are the indexes of the tile keys stored on the all
+*tiles arrray. */
 interface IBoard
 {
   tiles?: number[];
