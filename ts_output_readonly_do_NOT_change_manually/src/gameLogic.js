@@ -11,11 +11,28 @@ var Tile = (function () {
 })();
 var Board = (function () {
     function Board() {
+        this.tiles = [];
     }
-    Board.prototype.setRoot = function (tile) {
-        this.root = tile;
-        this.leftMost = tile;
-        this.rightMost = tile;
+    Board.prototype.setRoot = function (tileId) {
+        this.tiles[0] = tileId;
+        //Initialize right and left ot hte root
+        this.rightMost = 0;
+        this.leftMost = 0;
+    };
+    Board.prototype.addRightChild = function (tileId) {
+        this.tiles[2 * this.rightMost + 2] = tileId; //the right child of the current right title is at index 2 * i + 2. Initialize it to title with index playedTileId
+        this.rightMost = 2 * this.rightMost + 2;
+    };
+    Board.prototype.addLeftChild = function (tileId) {
+        this.tiles[2 * this.leftMost + 1] = tileId; //the left child of the current left title is at index 2 * i + 1. Initialize it to title with index playedTileId
+        this.leftMost = 2 * this.leftMost + 1;
+    };
+    Board.prototype.containsTile = function (tileId) {
+        var index = this.tiles.indexOf(tileId);
+        if (index) {
+            return true;
+        }
+        return false;
     };
     return Board;
 })();
@@ -23,10 +40,7 @@ var Play;
 (function (Play) {
     Play[Play["LEFT"] = 0] = "LEFT";
     Play[Play["RIGHT"] = 1] = "RIGHT";
-    Play[Play["CENTER"] = 2] = "CENTER";
-    Play[Play["BUY"] = 3] = "BUY";
-    Play[Play["WIN"] = 4] = "WIN";
-    Play[Play["STAND_OFF"] = 5] = "STAND_OFF";
+    Play[Play["BUY"] = 2] = "BUY";
 })(Play || (Play = {}));
 var BoardDelta = (function () {
     function BoardDelta() {
@@ -38,7 +52,7 @@ var Player = (function () {
         this.id = playerId;
     }
     Player.prototype.addTileToHand = function (tile) {
-        this.hand[this.hand.length] = tile;
+        this.hand.push(tile);
     };
     Player.prototype.removeTileFromHand = function (tile) {
         var index = this.hand.indexOf(tile, 0);
@@ -46,30 +60,22 @@ var Player = (function () {
             this.hand.splice(index, 1);
         }
         else {
-            throw new Error("Player " + this.id + " does not have tile " + tile.leftNumber + "|" + tile.rightNumber);
+            throw new Error("Unknown array element " + tile);
         }
     };
     Player.prototype.getNumberOfRemainingTiles = function () {
         return this.hand.length;
     };
-    Player.prototype.hasTileWithNumbers = function (firstNumber, secondNumber) {
-        for (var i = 0; i < this.hand.length; i++) {
-            if (this.hand[i].validForTiles[firstNumber] || this.hand[i].validForTiles[secondNumber]) {
-                return true;
-            }
-        }
-        return false;
-    };
     return Player;
 })();
 var gameLogic;
 (function (gameLogic) {
-    function getTile(tileIndex) {
+    function getTile(tileId) {
         var i, j, k;
         k = 0;
         for (i = 0; i < 7; i++) {
             for (j = 0; j <= i; j++) {
-                if (k == tileIndex) {
+                if (k == tileId) {
                     return new Tile(j, i);
                 }
                 k++;
@@ -82,141 +88,123 @@ var gameLogic;
     }
     gameLogic.getInitialBoard = getInitialBoard;
     function getInitialMove() {
-        var operations = [], player0 = new Player(0), player1 = new Player(1), setTiles = [], setVisibilities = [], shuffleKeys = [], i, j, k;
+        var operations = [], player0 = new Player(0), player1 = new Player(1), house = new Player(-1), setTiles = [], setVisibilities = [], shuffleKeys = { keys: [] }, i, j, k;
         k = 0;
         for (i = 0; i < 7; i++) {
             for (j = 0; j <= i; j++) {
                 var currentTile = new Tile(j, i);
-                setTiles[k] = { set: { key: 'tile' + currentTile.leftNumber + currentTile.rightNumber, value: currentTile } };
                 if (k < 7) {
-                    player0.hand[k] = currentTile;
-                    setVisibilities[k] = { setVisibility: { key: 'tile' + currentTile.leftNumber + currentTile.rightNumber, visibleToPlayerIndexes: [0] } };
+                    player0.hand[k] = k;
+                    setTiles[k] = { key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [0] };
                 }
                 else if (k < 14) {
-                    player1.hand[k - 7] = currentTile;
-                    setVisibilities[k] = { setVisibility: { key: 'tile' + currentTile.leftNumber + currentTile.rightNumber, visibleToPlayerIndexes: [1] } };
+                    player1.hand[k - 7] = k;
+                    setTiles[k] = { key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [1] };
                 }
                 else {
-                    setVisibilities[k] = { setVisibility: { key: 'tile' + currentTile.leftNumber + currentTile.rightNumber, visibleToPlayerIndexes: [] } };
+                    house.hand[k - 14] = k;
+                    setTiles[k] = { key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [] };
                 }
-                shuffleKeys[k] = 'tile' + currentTile.leftNumber + currentTile.rightNumber;
+                shuffleKeys.keys.push('tile' + k);
                 k++;
             }
         }
-        operations.selfConcat([{ setTurn: { turnIndex: 0 } }]);
-        operations.selfConcat([{ set: { key: 'player0', value: player0 } }]);
-        operations.selfConcat([{ set: { key: 'player1', value: player1 } }]);
-        operations.selfConcat([{ set: { key: 'board', value: getInitialBoard() } }]);
-        operations.selfConcat([{ set: { key: 'house', value: new Player(-1) } }]);
-        operations.selfConcat(setTiles);
-        operations.selfConcat([{ shuffle: { keys: shuffleKeys } }]);
-        operations.selfConcat(setVisibilities);
+        operations.concat([{ setTurn: { turnIndex: 0 } }]);
+        operations.concat([{ set: { key: 'player0', value: player0 } }]);
+        operations.concat([{ set: { key: 'player1', value: player1 } }]);
+        operations.concat([{ set: { key: 'house', value: house } }]);
+        operations.concat([{ set: { key: 'board', value: getInitialBoard() } }]);
+        operations.concat(setTiles);
+        operations.concat([{ shuffle: { keys: shuffleKeys } }]);
+        operations.concat(setVisibilities);
         return operations;
     }
     gameLogic.getInitialMove = getInitialMove;
-    function getWinner(tile, currentPlayer) {
-        currentPlayer.removeTileFromHand(tile);
+    function getWinner(playedTileId, currentPlayer) {
+        currentPlayer.removeTileFromHand(playedTileId);
         if (currentPlayer.getNumberOfRemainingTiles() === 0) {
             return currentPlayer.id;
         }
         return undefined;
     }
-    function isTie(board, players, house) {
-        var leftTile = board.leftMost;
-        var rightTile = board.rightMost;
-        if (house.hasTileWithNumbers(board.leftMost.leftNumber, board.rightMost.rightNumber)) {
-            return false;
+    /*function isTie(board: Board, players: Player[], house: Player): boolean{
+      var leftTile: Tile = board.leftMost;
+      var rightTile: Tile = board.rightMost;
+  
+      if (house.hasTileWithNumbers(board.leftMost.leftNumber, board.rightMost.rightNumber))
+      {
+        return false;
+      }
+  
+      for(var i = 0; i < players.length; i++)
+      {
+        if (players[i].hasTileWithNumbers(board.leftMost.leftNumber, board.rightMost.rightNumber))
+        {
+          return false;
         }
-        for (var i = 0; i < players.length; i++) {
-            if (players[i].hasTileWithNumbers(board.leftMost.leftNumber, board.rightMost.rightNumber)) {
-                return false;
-            }
-        }
-        return true;
-    }
+      }
+  
+      return true;
+    }*/
     /**
     * Returns the move that should be performed when player
     * with index turnIndexBeforeMove makes adds a domino to the board.
     */
-    function createMove(board, playedTile, play, turnIndexBeforeMove, players, house) {
-        var operations = [], setVisibilities = [], boardAfterMove, playerAfterMove, houseAfterMove;
+    function createMove(board, playedTileId, play, turnIndexBeforeMove, players, house) {
+        var operations, visibility, boardAfterMove, playerAfterMove, houseAfterMove;
+        if (getWinner(playedTileId, players[0]) || getWinner(playedTileId, players[1])) {
+            throw new Error("Can only make a move if the game is not over!");
+        }
         boardAfterMove = angular.copy(board);
         playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
         houseAfterMove = angular.copy(house);
-        if (play == Play.CENTER) {
-            if (board.root) {
-                throw new Error("One cannot make a non center play in a board that already has the first tile!");
+        //If there was no tile on the board before, this is the first tile
+        //TODO: BEFORE RETURNING FROM EACH OPERATION, CHECK FOR WINNER OR TIE
+        if (board.tiles.length === 0) {
+            boardAfterMove.setRoot(playedTileId);
+            playerAfterMove.removeTileFromHand(playedTileId);
+            visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1] };
+            operations.concat([{ set: { key: 'player' + turnIndexBeforeMove, value: playerAfterMove } }]);
+            operations.concat([{ set: { key: 'board', value: boardAfterMove } }]);
+            operations.concat([{ setTurn: { turnIndex: 1 - turnIndexBeforeMove } }]);
+            operations.concat([{ setVisibility: visibility }]);
+            return operations;
+        }
+        else if (Play.LEFT === play) {
+            boardAfterMove.addLeftChild(playedTileId);
+            playerAfterMove.removeTileFromHand(playedTileId);
+            visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1] };
+            operations.concat([{ set: { key: 'player' + turnIndexBeforeMove, value: playerAfterMove } }]);
+            operations.concat([{ set: { key: 'board', value: boardAfterMove } }]);
+            operations.concat([{ setTurn: { turnIndex: 1 - turnIndexBeforeMove } }]);
+            operations.concat([{ setVisibility: visibility }]);
+            return operations;
+        }
+        else if (Play.RIGHT === play) {
+            boardAfterMove.addRightChild(playedTileId);
+            playerAfterMove.removeTileFromHand(playedTileId);
+            visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1] };
+            operations.concat([{ set: { key: 'player' + turnIndexBeforeMove, value: playerAfterMove } }]);
+            operations.concat([{ set: { key: 'board', value: boardAfterMove } }]);
+            operations.concat([{ setTurn: { turnIndex: 1 - turnIndexBeforeMove } }]);
+            operations.concat([{ setVisibility: visibility }]);
+            return operations;
+        }
+        else if (Play.BUY === play) {
+            if (house.getNumberOfRemainingTiles() === 0) {
+                throw new Error("One cannot buy from the house when it has no tiles");
             }
-            boardAfterMove.setRoot(playedTile);
-            playerAfterMove.removeTileFromHand(playedTile);
-            setVisibilities.selfConcat([{ setVisibility: { key: 'tile' + playedTile.leftNumber + playedTile.rightNumber, visibleToPlayerIndexes: [] } }]);
-            operations.selfConcat([{ setTurn: { turnIndex: 1 - turnIndexBeforeMove } }]);
-            operations.selfConcat([{ set: { key: 'player' + turnIndexBeforeMove, value: playerAfterMove } }]);
-            operations.selfConcat([{ set: { key: 'board', value: boardAfterMove } }]);
-            operations.selfConcat(setVisibilities);
+            houseAfterMove.removeTileFromHand(playedTileId);
+            playerAfterMove.addTileToHand(playedTileId);
+            visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [turnIndexBeforeMove] };
+            operations.concat([{ setTurn: { turnIndex: turnIndexBeforeMove } }]);
+            operations.concat([{ set: { key: 'player' + turnIndexBeforeMove, value: players[turnIndexBeforeMove] } }]);
+            operations.concat([{ set: { key: 'house', value: house } }]);
+            operations.concat([{ setVisibility: visibility }]);
             return operations;
         }
         else {
-            if (!board.leftMost || !board.rightMost) {
-                throw new Error("One cannot make a move in a board with no pieces on the left or right sides!");
-            }
-            if (Play.LEFT === play) {
-                boardAfterMove.leftMost.leftChild = playedTile;
-                boardAfterMove.leftMost = playedTile;
-                playerAfterMove.removeTileFromHand(playedTile);
-                setVisibilities.selfConcat([{ setVisibility: { key: 'tile' + playedTile.leftNumber + playedTile.rightNumber, visibleToPlayerIndexes: [] } }]);
-                operations.selfConcat([{ setTurn: { turnIndex: 1 - turnIndexBeforeMove } }]);
-                operations.selfConcat([{ set: { key: 'player' + turnIndexBeforeMove, value: playerAfterMove } }]);
-                operations.selfConcat([{ set: { key: 'board', value: boardAfterMove } }]);
-                operations.selfConcat(setVisibilities);
-                return operations;
-            }
-            else if (Play.RIGHT === play) {
-                boardAfterMove.rightMost.rightChild = playedTile;
-                boardAfterMove.rightMost = playedTile;
-                playerAfterMove.removeTileFromHand(playedTile);
-                setVisibilities.selfConcat([{ setVisibility: { key: 'tile' + playedTile.leftNumber + playedTile.rightNumber, visibleToPlayerIndexes: [] } }]);
-                operations.selfConcat([{ setTurn: { turnIndex: 1 - turnIndexBeforeMove } }]);
-                operations.selfConcat([{ set: { key: 'player' + turnIndexBeforeMove, value: playerAfterMove } }]);
-                operations.selfConcat([{ set: { key: 'board', value: boardAfterMove } }]);
-                operations.selfConcat(setVisibilities);
-                return operations;
-            }
-            else if (Play.BUY === play) {
-                if (house.getNumberOfRemainingTiles() === 0) {
-                    throw new Error("One cannot buy from the house when it has no tiles");
-                }
-                houseAfterMove.removeTileFromHand(playedTile);
-                playerAfterMove.addTileToHand(playedTile);
-                setVisibilities.selfConcat([{ setVisibility: { key: 'tile' + playedTile.leftNumber + playedTile.rightNumber, visibleToPlayerIndexes: [turnIndexBeforeMove] } }]);
-                operations.selfConcat([{ setTurn: { turnIndex: turnIndexBeforeMove } }]);
-                operations.selfConcat([{ set: { key: 'player' + turnIndexBeforeMove, value: players[turnIndexBeforeMove] } }]);
-                operations.selfConcat([{ set: { key: 'house', value: house } }]);
-                operations.selfConcat(setVisibilities);
-                return operations;
-            }
-            else if (Play.WIN === play) {
-                var winner = getWinner(playedTile, players[turnIndexBeforeMove]);
-                if (winner === 0) {
-                    operations.selfConcat([{ endMatch: { endMatchScores: [1, 0] } }]);
-                }
-                else if (winner === 1) {
-                    operations.selfConcat([{ endMatch: { endMatchScores: [0, 1] } }]);
-                }
-                return operations;
-            }
-            else if (Play.STAND_OFF === play) {
-                if (isTie(board, players, house)) {
-                    operations.selfConcat([{ endMatch: { endMatchScores: [0, 0] } }]);
-                    return operations;
-                }
-                else {
-                    throw new Error("There are still plays left. Cannot be a stand off");
-                }
-            }
-            else {
-                throw new Error("Unknown play");
-            }
+            throw new Error("Unknown play");
         }
     }
     gameLogic.createMove = createMove;
@@ -245,7 +233,7 @@ var gameLogic;
             }
             else {
                 var deltaValue = move[2].set.value;
-                var playedTile = deltaValue.tile;
+                var playedTile = deltaValue.tileId;
                 var play = deltaValue.play;
                 var players = stateBeforeMove.players;
                 var house = stateBeforeMove.house;
