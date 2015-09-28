@@ -32,7 +32,7 @@ class Board
 
 enum Play
 {
-  LEFT, RIGHT, CENTER, BUY
+  LEFT, RIGHT, CENTER, BUY, WIN, STAND_OFF
 }
 
 class BoardDelta {
@@ -43,7 +43,6 @@ class BoardDelta {
 class Player
 {
   id: number;
-  name: string;
   hand: Tile[];
 
   constructor(playerId: number)
@@ -97,8 +96,72 @@ interface IState {
 
 module gameLogic {
 
-  export function getInitialBoard(): Board {
-      return new Board();
+  export function getTile(tileIndex: number) : Tile
+  {
+    var i: number, j: number, k: number;
+    k = 0;
+    for(i = 0; i < 7; i++)
+    {
+      for(j = 0; j <= i; j++)
+      {
+        if (k == tileIndex)
+        {
+          return new Tile(j, i);
+        }
+        k++;
+      }
+    }
+  }
+    export function getInitialBoard(): Board {
+        return new Board();
+    }
+
+  export function getInitialMove() {
+      var operations = [],
+      player0: Player = new Player(0),
+      player1: Player = new Player(1),
+      setTiles = [],
+      setVisibilities = [],
+      shuffleKeys = [],
+      i: number, j: number, k: number;
+      k = 0;
+
+      for(i = 0; i < 7; i++)
+      {
+        for(j = 0; j <= i; j++)
+        {
+          var currentTile: Tile = new Tile(j, i);
+          setTiles[k] = {set: {key: 'tile' + currentTile.leftNumber + currentTile.rightNumber, value: currentTile }}
+
+          if(k < 7)
+          {
+            player0.hand[k] = currentTile;
+            setVisibilities[k] = {setVisibility: {key: 'tile' +  currentTile.leftNumber + currentTile.rightNumber, visibleToPlayerIndexes: [0]}};
+          }
+          else if (k < 14)
+          {
+            player1.hand[k-7] = currentTile;
+            setVisibilities[k] = {setVisibility: {key: 'tile' +  currentTile.leftNumber + currentTile.rightNumber, visibleToPlayerIndexes: [1]}};
+          }
+          else
+          {
+            setVisibilities[k] = {setVisibility: {key: 'tile' +  currentTile.leftNumber + currentTile.rightNumber, visibleToPlayerIndexes: []}};
+          }
+          shuffleKeys[k] = 'tile' +  currentTile.leftNumber + currentTile.rightNumber;
+          k++;
+        }
+      }
+
+      operations.selfConcat([{setTurn: {turnIndex: 0}}]);
+      operations.selfConcat([{set: {key: 'player0', value: player0}}]);
+      operations.selfConcat([{set: {key: 'player1', value: player1}}]);
+      operations.selfConcat([{set: {key: 'board', value: getInitialBoard()}}]);
+      operations.selfConcat([{set: {key: 'house', value: new Player(-1)}}]);
+      operations.selfConcat(setTiles);
+      operations.selfConcat([{shuffle: {keys: shuffleKeys}}]);
+      operations.selfConcat(setVisibilities);
+
+      return operations;
   }
 
   function getWinner(tile: Tile, currentPlayer: Player): number
@@ -136,21 +199,33 @@ module gameLogic {
   * with index turnIndexBeforeMove makes adds a domino to the board.
   */
   export function createMove(
-    board: Board, tile: Tile, play: Play, turnIndexBeforeMove: number, players: Player[], house: Player): IMove {
-    if (!board) {
-      // Initially (at the beginning of the match), the board in state is undefined.
-      board = getInitialBoard();
-    }
+    board: Board, playedTile: Tile, play: Play, turnIndexBeforeMove: number, players: Player[], house: Player): IMove {
+    var operations = [],
+    setVisibilities = [],
+    boardAfterMove: Board,
+    playerAfterMove: Player,
+    houseAfterMove: Player;
 
-    var boardAfterMove = angular.copy(board);
-    if (!board.root)
+    boardAfterMove = angular.copy(board);
+    playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
+    houseAfterMove = angular.copy(house);
+    if (play == Play.CENTER)
     {
-      if (play !== Play.CENTER)
+      if (board.root)
       {
-        throw new Error("One cannot make a non center play in a board with no first tile!");
+        throw new Error("One cannot make a non center play in a board that already has the first tile!");
       }
-      boardAfterMove.setRoot(tile);
-      players[turnIndexBeforeMove].removeTileFromHand(tile);
+      boardAfterMove.setRoot(playedTile);
+      playerAfterMove.removeTileFromHand(playedTile);
+
+      setVisibilities.selfConcat([{setVisibility: {key: 'tile' + playedTile.leftNumber + playedTile.rightNumber, visibleToPlayerIndexes: []}}]);
+
+      operations.selfConcat([{setTurn: {turnIndex: 1 - turnIndexBeforeMove}}]);
+      operations.selfConcat([{set: {key: 'player' + turnIndexBeforeMove, value: playerAfterMove}}]);
+      operations.selfConcat([{set: {key: 'board', value: boardAfterMove}}]);
+      operations.selfConcat(setVisibilities)
+      return operations;
+
     }
     else
     {
@@ -161,13 +236,32 @@ module gameLogic {
 
       if (Play.LEFT === play)
       {
-        boardAfterMove.leftMost.leftChild = tile;
-        boardAfterMove.leftMost = tile;
+        boardAfterMove.leftMost.leftChild = playedTile;
+        boardAfterMove.leftMost = playedTile;
+        playerAfterMove.removeTileFromHand(playedTile);
+
+        setVisibilities.selfConcat([{setVisibility: {key: 'tile' + playedTile.leftNumber + playedTile.rightNumber, visibleToPlayerIndexes: []}}]);
+
+        operations.selfConcat([{setTurn: {turnIndex: 1 - turnIndexBeforeMove}}]);
+        operations.selfConcat([{set: {key: 'player' + turnIndexBeforeMove, value: playerAfterMove}}]);
+        operations.selfConcat([{set: {key: 'board', value: boardAfterMove}}]);
+        operations.selfConcat(setVisibilities)
+        return operations;
       }
       else if (Play.RIGHT === play)
       {
-        boardAfterMove.rightMost.rightChild = tile;
-        boardAfterMove.rightMost = tile;
+        boardAfterMove.rightMost.rightChild = playedTile;
+        boardAfterMove.rightMost = playedTile;
+        playerAfterMove.removeTileFromHand(playedTile);
+
+        setVisibilities.selfConcat([{setVisibility: {key: 'tile' + playedTile.leftNumber + playedTile.rightNumber, visibleToPlayerIndexes: []}}]);
+
+        operations.selfConcat([{setTurn: {turnIndex: 1 - turnIndexBeforeMove}}]);
+        operations.selfConcat([{set: {key: 'player' + turnIndexBeforeMove, value: playerAfterMove}}]);
+        operations.selfConcat([{set: {key: 'board', value: boardAfterMove}}]);
+        operations.selfConcat(setVisibilities)
+        return operations;
+
       }
       else if (Play.BUY === play)
       {
@@ -176,48 +270,48 @@ module gameLogic {
           throw new Error("One cannot buy from the house when it has no tiles");
         }
 
-        var tile: Tile = house.hand[Math.floor(Math.random() * house.hand.length)];
-        house.removeTileFromHand(tile);
-        players[turnIndexBeforeMove].addTileToHand(tile);
+        houseAfterMove.removeTileFromHand(playedTile);
+        playerAfterMove.addTileToHand(playedTile);
+
+        setVisibilities.selfConcat([{setVisibility: {key: 'tile' + playedTile.leftNumber + playedTile.rightNumber, visibleToPlayerIndexes: [turnIndexBeforeMove]}}]);
+
+        operations.selfConcat([{setTurn: {turnIndex: turnIndexBeforeMove}}]);
+        operations.selfConcat([{set: {key: 'player' + turnIndexBeforeMove, value: players[turnIndexBeforeMove]}}]);
+        operations.selfConcat([{set: {key: 'house', value: house}}]);
+        operations.selfConcat(setVisibilities)
+        return operations;
+      }
+      else if (Play.WIN === play)
+      {
+        var winner = getWinner(playedTile, players[turnIndexBeforeMove]);
+
+        if (winner === 0) {
+          operations.selfConcat([{endMatch: {endMatchScores: [1, 0]}}]);
+        } else if (winner === 1) {
+          operations.selfConcat([{endMatch: {endMatchScores: [0, 1]}}]);
+        }
+
+        return operations;
+      }
+      else if (Play.STAND_OFF === play)
+      {
+        if(isTie(board, players, house))
+        {
+          operations.selfConcat([{endMatch: {endMatchScores: [0, 0]}}]);
+          return operations;
+        }
+        else
+        {
+          throw new Error("There are still plays left. Cannot be a stand off");
+        }
       }
       else
       {
-        throw new Error("One cannot make a center move on a board that already has a tile");
+        throw new Error("Unknown play");
       }
     }
 
-    var winner = getWinner(tile, players[turnIndexBeforeMove]);
-    var firstOperation: IOperation;
-    if (!winner || isTie(boardAfterMove, players, house)) {
-    // Game over.
-      firstOperation = {endMatch: {endMatchScores:
-        winner ? [winner] : [-1]}};
-    } else {
-      // Game continues. Now it's the opponent's turn (the turn switches from 0 to 1 and 1 to 0).
-      firstOperation = {setTurn: {turnIndex: 1 - turnIndexBeforeMove}};
-    }
-    var delta: BoardDelta = {tile: tile, play: play};
-    return [firstOperation,
-          {set: {key: 'board', value: boardAfterMove}},
-          {set: {key: 'delta', value: delta}}];
-}
 
-export function getInitialMove() {
-    var operations = [],
-    tiles: Tile[] = [],
-    setVisibilities = [],
-    shuffleKeys = [],
-    i: number, j: number, k: number;
-
-    k = 0;
-    for(i = 0; i < 7; i++)
-    {
-      for(j = 0; j <= i; j++)
-      {
-        tiles[k] = new Tile(j, i);
-        k++;
-      }
-    }
 }
 
 /**
@@ -246,16 +340,16 @@ export function getInitialMove() {
 
       if (!params.stateBeforeMove)
       {
-        expectedMove = getInitialMove(stateBeforeMove);
+        expectedMove = getInitialMove();
       }
       else
       {
         var deltaValue: BoardDelta = move[2].set.value;
-        var tile: Tile = deltaValue.tile;
+        var playedTile: Tile = deltaValue.tile;
         var play: Play = deltaValue.play;
         var players: Player[] = stateBeforeMove.players;
         var house: Player = stateBeforeMove.house;
-        expectedMove = createMove(board, tile, play, turnIndexBeforeMove, players, house);
+        expectedMove = createMove(stateBeforeMove.board, playedTile, play, turnIndexBeforeMove, players, house);
     }
       if (!angular.equals(move, expectedMove)) {
         return false;
