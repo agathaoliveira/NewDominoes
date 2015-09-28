@@ -202,24 +202,61 @@ module gameLogic {
           {set: {key: 'delta', value: delta}}];
 }
 
+export function getInitialMove() {
+    var operations = [],
+    tiles: Tile[] = [],
+    setVisibilities = [],
+    shuffleKeys = [],
+    i: number, j: number, k: number;
+
+    k = 0;
+    for(i = 0; i < 7; i++)
+    {
+      for(j = 0; j <= i; j++)
+      {
+        tiles[k] = new Tile(j, i);
+        k++;
+      }
+    }
+}
+
+/**
+   * Check if the move is OK.
+   *
+   * @param params the match info which contains stateBeforeMove,
+   *              stateAfterMove, turnIndexBeforeMove, turnIndexAfterMove,
+   *              move.
+   * @returns return true if the move is ok, otherwise false.
+   */
   export function isMoveOk(params: IIsMoveOk): boolean {
     var move = params.move;
     var turnIndexBeforeMove = params.turnIndexBeforeMove;
     var stateBeforeMove: IState = params.stateBeforeMove;
-    // The state and turn after move are not needed in dominoes
-    //var turnIndexAfterMove = params.turnIndexAfterMove;
-    //var stateAfterMove = params.stateAfterMove;
 
-    // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
-    // to verify that move is legal.
+    /*********************************************************************
+    * 1. If the stateBeforeMove is empty, then it should be the first
+    *    move. Set the board of stateBeforeMove to be the initial board.
+    *    If the stateBeforeMove is not empty, then the board should have
+    *    one or more dominoes.
+    ********************************************************************/
+
     try {
-      var deltaValue: BoardDelta = move[2].set.value;
-      var tile: Tile = deltaValue.tile;
-      var play: Play = deltaValue.play;
-      var board = stateBeforeMove.board;
-      var players: Player[] = stateBeforeMove.players;
-      var house: Player = stateBeforeMove.house;
-      var expectedMove = createMove(board, tile, play, turnIndexBeforeMove, players, house);
+
+      var expectedMove: IMove;
+
+      if (!params.stateBeforeMove)
+      {
+        expectedMove = getInitialMove(stateBeforeMove);
+      }
+      else
+      {
+        var deltaValue: BoardDelta = move[2].set.value;
+        var tile: Tile = deltaValue.tile;
+        var play: Play = deltaValue.play;
+        var players: Player[] = stateBeforeMove.players;
+        var house: Player = stateBeforeMove.house;
+        expectedMove = createMove(board, tile, play, turnIndexBeforeMove, players, house);
+    }
       if (!angular.equals(move, expectedMove)) {
         return false;
       }
