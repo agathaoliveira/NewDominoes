@@ -1,4 +1,4 @@
-describe("In TicTacToe", function() {
+describe("In Dominoes", function() {
 
   function expectMove(
       turnIndexBeforeMove: number, stateBeforeMove: IState, move: IMove, isOk: boolean): void {
@@ -19,170 +19,21 @@ describe("In TicTacToe", function() {
     expectMove(turnIndexBeforeMove, stateBeforeMove, move, false);
   }
 
-  it("placing X in 0x0 from initial state is legal", function() {
-    expectMoveOk(0, <IState>{},
-      [{setTurn: {turnIndex : 1}},
-        {set: {key: 'board', value:
-          [['X', '', ''],
-           ['', '', ''],
-           ['', '', '']]}},
-        {set: {key: 'delta', value: {row: 0, col: 0}}}]);
+  //TODO: CONFIRM SHUFFLE
+  it("Get initial board is legal", function() {
+    expectMoveOk(0, undefined,
+    [{set:{key:"tile0",value:{leftNumber:0,rightNumber:0},visibleToPlayerIndexes:[0]}},{set:{key:"tile1",value:{leftNumber:0,rightNumber:1},visibleToPlayerIndexes:[0]}},{set:{key:"tile2",value:{leftNumber:1,rightNumber:1},visibleToPlayerIndexes:[0]}},{set:{key:"tile3",value:{leftNumber:0,rightNumber:2},visibleToPlayerIndexes:[0]}},{set:{key:"tile4",value:{leftNumber:1,rightNumber:2},visibleToPlayerIndexes:[0]}},{set:{key:"tile5",value:{leftNumber:2,rightNumber:2},visibleToPlayerIndexes:[0]}},{set:{key:"tile6",value:{leftNumber:0,rightNumber:3},visibleToPlayerIndexes:[0]}},{set:{key:"tile7",value:{leftNumber:1,rightNumber:3},visibleToPlayerIndexes:[1]}},{set:{key:"tile8",value:{leftNumber:2,rightNumber:3},visibleToPlayerIndexes:[1]}},{set:{key:"tile9",value:{leftNumber:3,rightNumber:3},visibleToPlayerIndexes:[1]}},{set:{key:"tile10",value:{leftNumber:0,rightNumber:4},visibleToPlayerIndexes:[1]}},{set:{key:"tile11",value:{leftNumber:1,rightNumber:4},visibleToPlayerIndexes:[1]}},{set:{key:"tile12",value:{leftNumber:2,rightNumber:4},visibleToPlayerIndexes:[1]}},{set:{key:"tile13",value:{leftNumber:3,rightNumber:4},visibleToPlayerIndexes:[1]}},{set:{key:"tile14",value:{leftNumber:4,rightNumber:4},visibleToPlayerIndexes:[]}},{set:{key:"tile15",value:{leftNumber:0,rightNumber:5},visibleToPlayerIndexes:[]}},{set:{key:"tile16",value:{leftNumber:1,rightNumber:5},visibleToPlayerIndexes:[]}},{set:{key:"tile17",value:{leftNumber:2,rightNumber:5},visibleToPlayerIndexes:[]}},{set:{key:"tile18",value:{leftNumber:3,rightNumber:5},visibleToPlayerIndexes:[]}},{set:{key:"tile19",value:{leftNumber:4,rightNumber:5},visibleToPlayerIndexes:[]}},{set:{key:"tile20",value:{leftNumber:5,rightNumber:5},visibleToPlayerIndexes:[]}},{set:{key:"tile21",value:{leftNumber:0,rightNumber:6},visibleToPlayerIndexes:[]}},{set:{key:"tile22",value:{leftNumber:1,rightNumber:6},visibleToPlayerIndexes:[]}},{set:{key:"tile23",value:{leftNumber:2,rightNumber:6},visibleToPlayerIndexes:[]}},{set:{key:"tile24",value:{leftNumber:3,rightNumber:6},visibleToPlayerIndexes:[]}},{set:{key:"tile25",value:{leftNumber:4,rightNumber:6},visibleToPlayerIndexes:[]}},{set:{key:"tile26",value:{leftNumber:5,rightNumber:6},visibleToPlayerIndexes:[]}},{set:{key:"tile27",value:{leftNumber:6,rightNumber:6},visibleToPlayerIndexes:[]}},{setTurn:{turnIndex:0}},{set:{key:"player0",value:{id:0,hand:[0,1,2,3,4,5,6]}}},{set:{key:"player1",value:{id:1,hand:[7,8,9,10,11,12,13]}}},{set:{key:"house",value:{id:-1,hand:[14,15,16,17,18,19,20,21,22,23,24,25,26,27]}}},{set:{key:"board",value:{allTiles:[{key:"tile0",value:{leftNumber:0,rightNumber:0},visibleToPlayerIndexes:[0]},{key:"tile1",value:{leftNumber:0,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile2",value:{leftNumber:1,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile3",value:{leftNumber:0,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile4",value:{leftNumber:1,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile5",value:{leftNumber:2,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile6",value:{leftNumber:0,rightNumber:3},visibleToPlayerIndexes:[0]},{key:"tile7",value:{leftNumber:1,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile8",value:{leftNumber:2,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile9",value:{leftNumber:3,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile10",value:{leftNumber:0,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile11",value:{leftNumber:1,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile12",value:{leftNumber:2,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile13",value:{leftNumber:3,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile14",value:{leftNumber:4,rightNumber:4},visibleToPlayerIndexes:[]},{key:"tile15",value:{leftNumber:0,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile16",value:{leftNumber:1,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile17",value:{leftNumber:2,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile18",value:{leftNumber:3,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile19",value:{leftNumber:4,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile20",value:{leftNumber:5,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile21",value:{leftNumber:0,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile22",value:{leftNumber:1,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile23",value:{leftNumber:2,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile24",value:{leftNumber:3,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile25",value:{leftNumber:4,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile26",value:{leftNumber:5,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile27",value:{leftNumber:6,rightNumber:6},visibleToPlayerIndexes:[]}]}}},{set:{key:"allTiles",value:[{key:"tile0",value:{leftNumber:0,rightNumber:0},visibleToPlayerIndexes:[0]},{key:"tile1",value:{leftNumber:0,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile2",value:{leftNumber:1,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile3",value:{leftNumber:0,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile4",value:{leftNumber:1,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile5",value:{leftNumber:2,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile6",value:{leftNumber:0,rightNumber:3},visibleToPlayerIndexes:[0]},{key:"tile7",value:{leftNumber:1,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile8",value:{leftNumber:2,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile9",value:{leftNumber:3,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile10",value:{leftNumber:0,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile11",value:{leftNumber:1,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile12",value:{leftNumber:2,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile13",value:{leftNumber:3,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile14",value:{leftNumber:4,rightNumber:4},visibleToPlayerIndexes:[]},{key:"tile15",value:{leftNumber:0,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile16",value:{leftNumber:1,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile17",value:{leftNumber:2,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile18",value:{leftNumber:3,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile19",value:{leftNumber:4,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile20",value:{leftNumber:5,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile21",value:{leftNumber:0,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile22",value:{leftNumber:1,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile23",value:{leftNumber:2,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile24",value:{leftNumber:3,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile25",value:{leftNumber:4,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile26",value:{leftNumber:5,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile27",value:{leftNumber:6,rightNumber:6},visibleToPlayerIndexes:[]}]}},{shuffle:{keys:["tile0","tile1","tile2","tile3","tile4","tile5","tile6","tile7","tile8","tile9","tile10","tile11","tile12","tile13","tile14","tile15","tile16","tile17","tile18","tile19","tile20","tile21","tile22","tile23","tile24","tile25","tile26","tile27"]}}]);
   });
 
-  it("placing O in 0x1 after X placed X in 0x0 is legal", function() {
-    expectMoveOk(1,
-      {board:
-        [['X', '', ''],
-         ['', '', ''],
-         ['', '', '']], delta: {row: 0, col: 0}},
-      [{setTurn: {turnIndex : 0}},
-        {set: {key: 'board', value:
-          [['X', 'O', ''],
-           ['', '', ''],
-           ['', '', '']]}},
-        {set: {key: 'delta', value: {row: 0, col: 1}}}]);
+  it("Initial move is legal", function() {
+    expectMoveOk(0, {delta: {tileId: 0}, house: {id:-1,hand:[14,15,16,17,18,19,20,21,22,23,24,25,26,27]}, players: [{id:0,hand:[0,1,2,3,4,5,6]},{id:1,hand:[7,8,9,10,11,12,13]}] ,board: {allTiles:[{key:"tile0",value:{leftNumber:0,rightNumber:0},visibleToPlayerIndexes:[0]},{key:"tile1",value:{leftNumber:0,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile2",value:{leftNumber:1,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile3",value:{leftNumber:0,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile4",value:{leftNumber:1,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile5",value:{leftNumber:2,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile6",value:{leftNumber:0,rightNumber:3},visibleToPlayerIndexes:[0]},{key:"tile7",value:{leftNumber:1,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile8",value:{leftNumber:2,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile9",value:{leftNumber:3,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile10",value:{leftNumber:0,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile11",value:{leftNumber:1,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile12",value:{leftNumber:2,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile13",value:{leftNumber:3,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile14",value:{leftNumber:4,rightNumber:4},visibleToPlayerIndexes:[]},{key:"tile15",value:{leftNumber:0,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile16",value:{leftNumber:1,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile17",value:{leftNumber:2,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile18",value:{leftNumber:3,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile19",value:{leftNumber:4,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile20",value:{leftNumber:5,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile21",value:{leftNumber:0,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile22",value:{leftNumber:1,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile23",value:{leftNumber:2,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile24",value:{leftNumber:3,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile25",value:{leftNumber:4,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile26",value:{leftNumber:5,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile27",value:{leftNumber:6,rightNumber:6},visibleToPlayerIndexes:[]}]}},
+    [{setTurn:{turnIndex:1}},{set:{key:"board",value:{allTiles:[{key:"tile0",value:{leftNumber:0,rightNumber:0},visibleToPlayerIndexes:[0]},{key:"tile1",value:{leftNumber:0,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile2",value:{leftNumber:1,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile3",value:{leftNumber:0,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile4",value:{leftNumber:1,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile5",value:{leftNumber:2,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile6",value:{leftNumber:0,rightNumber:3},visibleToPlayerIndexes:[0]},{key:"tile7",value:{leftNumber:1,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile8",value:{leftNumber:2,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile9",value:{leftNumber:3,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile10",value:{leftNumber:0,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile11",value:{leftNumber:1,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile12",value:{leftNumber:2,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile13",value:{leftNumber:3,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile14",value:{leftNumber:4,rightNumber:4},visibleToPlayerIndexes:[]},{key:"tile15",value:{leftNumber:0,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile16",value:{leftNumber:1,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile17",value:{leftNumber:2,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile18",value:{leftNumber:3,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile19",value:{leftNumber:4,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile20",value:{leftNumber:5,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile21",value:{leftNumber:0,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile22",value:{leftNumber:1,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile23",value:{leftNumber:2,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile24",value:{leftNumber:3,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile25",value:{leftNumber:4,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile26",value:{leftNumber:5,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile27",value:{leftNumber:6,rightNumber:6},visibleToPlayerIndexes:[]}]}}},{set:{key:"delta",value:{tileId:0}}},{setVisibility:{key:"tile0",visibleToPlayerIndexes:[0,1]}},{set:{key:"player0",value:{id:0,hand:[1,2,3,4,5,6]}}}]);
   });
 
-  it("placing an O in a non-empty position is illegal", function() {
-    expectIllegalMove(1,
-      {board:
-        [['X', '', ''],
-         ['', '', ''],
-         ['', '', '']], delta: {row: 0, col: 0}},
-      [{setTurn: {turnIndex : 0}},
-        {set: {key: 'board', value:
-          [['O', '', ''],
-           ['', '', ''],
-           ['', '', '']]}},
-        {set: {key: 'delta', value: {row: 0, col: 0}}}]);
+  it("Move after game is already over is illegal", function() {
+    expectIllegalMove(1, {delta: {tileId: 0}, house: {id:-1,hand:[14,15,16,17,18,19,20,21,22,23,24,25,26,27]}, players: [{id:0,hand:[]},{id:1,hand:[7,8,9,10]}],board: {leftMost: 6, rightMost: 11 ,allTiles:[{key:"tile0",value:{leftNumber:0,rightNumber:0},visibleToPlayerIndexes:[0]},{key:"tile1",value:{leftNumber:0,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile2",value:{leftNumber:1,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile3",value:{leftNumber:0,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile4",value:{leftNumber:1,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile5",value:{leftNumber:2,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile6",value:{leftNumber:0,rightNumber:3},visibleToPlayerIndexes:[0]},{key:"tile7",value:{leftNumber:1,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile8",value:{leftNumber:2,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile9",value:{leftNumber:3,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile10",value:{leftNumber:0,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile11",value:{leftNumber:1,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile12",value:{leftNumber:2,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile13",value:{leftNumber:3,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile14",value:{leftNumber:4,rightNumber:4},visibleToPlayerIndexes:[]},{key:"tile15",value:{leftNumber:0,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile16",value:{leftNumber:1,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile17",value:{leftNumber:2,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile18",value:{leftNumber:3,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile19",value:{leftNumber:4,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile20",value:{leftNumber:5,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile21",value:{leftNumber:0,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile22",value:{leftNumber:1,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile23",value:{leftNumber:2,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile24",value:{leftNumber:3,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile25",value:{leftNumber:4,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile26",value:{leftNumber:5,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile27",value:{leftNumber:6,rightNumber:6},visibleToPlayerIndexes:[]}]}},
+    [{setTurn:{turnIndex:1}},{set:{key:"board",value:{allTiles:[{key:"tile0",value:{leftNumber:0,rightNumber:0},visibleToPlayerIndexes:[0]},{key:"tile1",value:{leftNumber:0,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile2",value:{leftNumber:1,rightNumber:1},visibleToPlayerIndexes:[0]},{key:"tile3",value:{leftNumber:0,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile4",value:{leftNumber:1,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile5",value:{leftNumber:2,rightNumber:2},visibleToPlayerIndexes:[0]},{key:"tile6",value:{leftNumber:0,rightNumber:3},visibleToPlayerIndexes:[0]},{key:"tile7",value:{leftNumber:1,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile8",value:{leftNumber:2,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile9",value:{leftNumber:3,rightNumber:3},visibleToPlayerIndexes:[1]},{key:"tile10",value:{leftNumber:0,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile11",value:{leftNumber:1,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile12",value:{leftNumber:2,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile13",value:{leftNumber:3,rightNumber:4},visibleToPlayerIndexes:[1]},{key:"tile14",value:{leftNumber:4,rightNumber:4},visibleToPlayerIndexes:[]},{key:"tile15",value:{leftNumber:0,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile16",value:{leftNumber:1,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile17",value:{leftNumber:2,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile18",value:{leftNumber:3,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile19",value:{leftNumber:4,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile20",value:{leftNumber:5,rightNumber:5},visibleToPlayerIndexes:[]},{key:"tile21",value:{leftNumber:0,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile22",value:{leftNumber:1,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile23",value:{leftNumber:2,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile24",value:{leftNumber:3,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile25",value:{leftNumber:4,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile26",value:{leftNumber:5,rightNumber:6},visibleToPlayerIndexes:[]},{key:"tile27",value:{leftNumber:6,rightNumber:6},visibleToPlayerIndexes:[]}]}}},{set:{key:"delta",value:{tileId:0}}},{setVisibility:{key:"tile0",visibleToPlayerIndexes:[0,1]}},{set:{key:"player0",value:{id:0,hand:[1,2,3,4,5,6]}}}]);
   });
 
-  it("cannot move after the game is over", function() {
-    expectIllegalMove(1,
-      {board:
-        [['X', 'O', ''],
-         ['X', 'O', ''],
-         ['X', '', '']], delta: {row: 2, col: 0}},
-      [{setTurn: {turnIndex : 0}},
-        {set: {key: 'board', value:
-          [['X', 'O', ''],
-           ['X', 'O', ''],
-           ['X', 'O', '']]}},
-        {set: {key: 'delta', value: {row: 2, col: 1}}}]);
-  });
-
-  it("placing O in 2x1 is legal", function() {
-    expectMoveOk(1,
-      {board:
-        [['O', 'X', ''],
-         ['X', 'O', ''],
-         ['X', '', '']], delta: {row: 2, col: 0}},
-      [{setTurn: {turnIndex : 0}},
-        {set: {key: 'board', value:
-          [['O', 'X', ''],
-           ['X', 'O', ''],
-           ['X', 'O', '']]}},
-        {set: {key: 'delta', value: {row: 2, col: 1}}}]);
-  });
-
-  it("X wins by placing X in 2x0 is legal", function() {
-    expectMoveOk(0,
-      {board:
-        [['X', 'O', ''],
-         ['X', 'O', ''],
-         ['', '', '']], delta: {row: 1, col: 1}},
-      [{endMatch: {endMatchScores: [1, 0]}},
-            {set: {key: 'board', value:
-              [['X', 'O', ''],
-               ['X', 'O', ''],
-               ['X', '', '']]}},
-            {set: {key: 'delta', value: {row: 2, col: 0}}}]);
-  });
-
-  it("O wins by placing O in 1x1 is legal", function() {
-    expectMoveOk(1,
-      {board:
-        [['X', 'X', 'O'],
-         ['X', '', ''],
-         ['O', '', '']], delta: {row: 0, col: 1}},
-      [{endMatch: {endMatchScores: [0, 1]}},
-            {set: {key: 'board', value:
-              [['X', 'X', 'O'],
-               ['X', 'O', ''],
-               ['O', '', '']]}},
-            {set: {key: 'delta', value: {row: 1, col: 1}}}]);
-  });
-
-  it("the game ties when there are no more empty cells", function() {
-    expectMoveOk(0,
-      {board:
-        [['X', 'O', 'X'],
-         ['X', 'O', 'O'],
-         ['O', 'X', '']], delta: {row: 2, col: 0}},
-      [{endMatch: {endMatchScores: [0, 0]}},
-            {set: {key: 'board', value:
-              [['X', 'O', 'X'],
-               ['X', 'O', 'O'],
-               ['O', 'X', 'X']]}},
-            {set: {key: 'delta', value: {row: 2, col: 2}}}]);
-  });
-
-  it("null move is illegal", function() {
-    expectIllegalMove(0, <IState>{}, null);
-  });
-
-  it("move without board is illegal", function() {
-    expectIllegalMove(0, <IState>{}, [{setTurn: {turnIndex : 1}}]);
-  });
-
-  it("move without delta is illegal", function() {
-    expectIllegalMove(0, <IState>{}, [{setTurn: {turnIndex : 1}},
-      {set: {key: 'board', value:
-        [['X', '', ''],
-         ['', '', ''],
-         ['', '', '']]}}]);
-  });
-
-  it("placing X outside the board (in 3x0) is illegal", function() {
-    expectIllegalMove(0, <IState>{}, [{setTurn: {turnIndex : 1}},
-      {set: {key: 'board', value:
-        [['X', '', ''],
-         ['', '', ''],
-         ['', '', '']]}},
-      {set: {key: 'delta', value: {row: 3, col: 0}}}]);
-  });
-
-  it("placing X in 0x0 but setTurn to yourself is illegal", function() {
-    expectIllegalMove(0, <IState>{}, [{setTurn: {turnIndex : 0}},
-      {set: {key: 'board', value:
-        [['X', '', ''],
-         ['', '', ''],
-         ['', '', '']]}},
-      {set: {key: 'delta', value: {row: 0, col: 0}}}]);
-  });
-
-  it("placing X in 0x0 but setting the board wrong is illegal", function() {
-    expectIllegalMove(0, <IState>{}, [{setTurn: {turnIndex : 1}},
-      {set: {key: 'board', value:
-        [['X', 'X', ''],
-         ['', '', ''],
-         ['', '', '']]}},
-      {set: {key: 'delta', value: {row: 0, col: 0}}}]);
-  });
-
-  it("getPossibleMoves returns exactly one cell", function() {
-    let board =
-        [['O', 'O', 'X'],
-         ['X', 'X', 'O'],
-         ['O', 'X', '']];
-    let possibleMoves = gameLogic.getPossibleMoves(board, 0);
-    let expectedMove = [{endMatch: {endMatchScores: [0, 0]}},
-        {set: {key: 'board', value:
-          [['O', 'O', 'X'],
-           ['X', 'X', 'O'],
-           ['O', 'X', 'X']]}},
-        {set: {key: 'delta', value: {row: 2, col: 2}}}];
-    expect(angular.equals(possibleMoves, [expectedMove])).toBe(true);
-  });
 
 });
