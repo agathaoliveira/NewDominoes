@@ -125,35 +125,54 @@ module gameLogic {
     return {};
   }
 
-  export function getInitialMove(): IMove {
+  export function getInitialMove(numOfPlayers: number): IMove {
       var operations: IMove = [],
-      player0: IPlayer = {id: 0, hand: []},
-      player1: IPlayer = {id: 1, hand: []},
+      players: IPlayer[] = [],
       house: IPlayer = {id: -1, hand: []},
       setTiles: ISet[] = [],
       setVisibilities: ISetVisibility[] = [],
       shuffleKeys: IShuffle = {keys: []},
-      i: number, j: number, k: number;
+      i: number, j: number, k: number, assignedTiles: number, tilesToAssign: number;
+
+      if (numOfPlayers === 2)
+      {
+        tilesToAssign = 7;
+      }
+      else
+      {
+        tilesToAssign = 5;
+      }
 
       k = 0;
+      assignedTiles = 0;
+      var currentPlayerId: number = 0;
       for(i = 0; i < 7; i++)
       {
         for(j = 0; j <= i; j++)
         {
           var currentTile: ITile = {leftNumber: j, rightNumber: i};
-          if (k < 7)
+
+          if (currentPlayerId < numOfPlayers)
           {
-            player0.hand[k] = k;
-            setTiles[k] = {key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [0] };
-          }
-          else if (k < 14)
-          {
-            player1.hand[k-7] = k;
-            setTiles[k] = {key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [1] };
+
+            if (!players[currentPlayerId])
+            {
+              players[currentPlayerId] = <IPlayer>{ id: currentPlayerId, hand: [] };
+            }
+
+            players[currentPlayerId].hand.push(k);
+            assignedTiles++;
+            setTiles[k] = {key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [currentPlayerId] };
+
+            if (assignedTiles === tilesToAssign)
+            {
+              currentPlayerId++;
+              assignedTiles = 0;
+            }
           }
           else
           {
-            house.hand[k-14] = k;
+            house.hand.push(k);
             setTiles[k] = {key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [] };
           }
 
@@ -167,8 +186,12 @@ module gameLogic {
       board.allTiles = setTiles;
 
       operations.push({setTurn: {turnIndex: 0}});
-      operations.push({set: {key: 'player0', value: player0}});
-      operations.push({set: {key: 'player1', value: player1}});
+
+      for (var i = 0; i < players.length; i++)
+      {
+        operations.push({set: {key: 'player' + i, value: players[i]}});
+      }
+
       operations.push({set: {key: 'house', value: house}});
       operations.push({set: {key: 'board', value: board}});
       operations.push({set: {key: 'allTiles', value: setTiles}});
@@ -249,8 +272,6 @@ module gameLogic {
 
     if (getWinner(player))
     {
-
-
       var endScores: number[] = [];
       endScores[player.id] = 1;
 
@@ -267,6 +288,17 @@ module gameLogic {
     }
   }
 
+  function getVisibilityForAllPlayers(numOfPlayers: number): number[]
+  {
+    var visitibilities:number[] = [];
+    for (var i = 0; i < numOfPlayers; i++)
+    {
+      visitibilities.push(i);
+    }
+
+    return visitibilities;
+  }
+
   /**
   * Returns the move that should be performed when player
   * with index turnIndexBeforeMove makes adds a domino to the board.
@@ -279,9 +311,18 @@ module gameLogic {
     playerAfterMove: IPlayer,
     houseAfterMove: IPlayer;
 
-    if(getWinner(players[0]) === players[0].id || getWinner(players[1]) === players[1].id || isTie(board, players, house))
+    //Check if someone has already won the game
+    for (var i = 0; i < players.length; i++)
     {
-      throw new Error("Can only make a move if the game is not over!");
+      if (getWinner(players[i]) === players[i].id)
+      {
+        throw new Error("Can only make a move if the game is not over! Player " + i + " has already won.");
+      }
+    }
+
+    if (isTie(board, players, house))
+    {
+      throw new Error("Can only make a move if the game is not over! The game is a tie");
     }
 
     boardAfterMove = angular.copy(board);
@@ -295,9 +336,10 @@ module gameLogic {
     {
       setBoardRoot(board, playedTileId);
       removeTileFromHand(playerAfterMove, playedTileId);
-      visibility = {key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1]};
+      visibility = {key: 'tile' + playedTileId, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length)};
 
-      return getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+      var nextTurn = (turnIndexBeforeMove + 1) % players.length;
+      return getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
     }
     else if (Play.LEFT === play)
     {
@@ -308,7 +350,8 @@ module gameLogic {
         visibility =  {key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1]};
 
         var endMove:IMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility);
-        return endMove ? endMove : getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+        var nextTurn = (turnIndexBeforeMove + 1) % players.length;
+        return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
     }
     else if (Play.RIGHT === play)
     {
@@ -317,7 +360,8 @@ module gameLogic {
 
         visibility =  {key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1]};
         var endMove:IMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility);
-        return endMove ? endMove : getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+        var nextTurn = (turnIndexBeforeMove + 1) % players.length;
+        return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
     }
     /*In this case, the domino tile should be removed from the house and
     /*added to the plauers hand. It should only be visible to the player
@@ -373,6 +417,7 @@ module gameLogic {
     var move = params.move;
     var turnIndexBeforeMove = params.turnIndexBeforeMove;
     var stateBeforeMove: IState = params.stateBeforeMove;
+    var numberOfPlayers: number = params.numberOfPlayers;
 
     /*********************************************************************
     * 1. If the stateBeforeMove is empty, then it should be the first
@@ -383,11 +428,16 @@ module gameLogic {
 
     try {
 
+      if (numberOfPlayers > 4)
+      {
+        throw Error("A maximum of 4 players are allowed for this game");
+      }
+      
       var expectedMove: IMove;
 
       if (!params.stateBeforeMove)
       {
-        expectedMove = getInitialMove();
+        expectedMove = getInitialMove(numberOfPlayers);
       }
       else
       {
@@ -396,14 +446,16 @@ module gameLogic {
         var play: Play = deltaValue.play;
         var players: IPlayer[] = stateBeforeMove.players;
         var house: IPlayer = stateBeforeMove.house;
+
         expectedMove = createMove(stateBeforeMove.board, playedTile, play, turnIndexBeforeMove, players, house);
       }
 
-    /*  console.log(JSON.stringify(move));
+    /*  console.log(JSON.stringify(move));*/
       console.log("---------------------")
-      console.log(JSON.stringify(expectedMove));*/
+      console.log(JSON.stringify(expectedMove));
 
       if (!angular.equals(move, expectedMove)) {
+      //  logDiffToConsole(move, expectedMove);
         return false;
       }
     } catch (e) {

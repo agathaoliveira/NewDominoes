@@ -65,22 +65,34 @@ var gameLogic;
         return {};
     }
     gameLogic.getInitialBoard = getInitialBoard;
-    function getInitialMove() {
-        var operations = [], player0 = { id: 0, hand: [] }, player1 = { id: 1, hand: [] }, house = { id: -1, hand: [] }, setTiles = [], setVisibilities = [], shuffleKeys = { keys: [] }, i, j, k;
+    function getInitialMove(numOfPlayers) {
+        var operations = [], players = [], house = { id: -1, hand: [] }, setTiles = [], setVisibilities = [], shuffleKeys = { keys: [] }, i, j, k, assignedTiles, tilesToAssign;
+        if (numOfPlayers === 2) {
+            tilesToAssign = 7;
+        }
+        else {
+            tilesToAssign = 5;
+        }
         k = 0;
+        assignedTiles = 0;
+        var currentPlayerId = 0;
         for (i = 0; i < 7; i++) {
             for (j = 0; j <= i; j++) {
                 var currentTile = { leftNumber: j, rightNumber: i };
-                if (k < 7) {
-                    player0.hand[k] = k;
-                    setTiles[k] = { key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [0] };
-                }
-                else if (k < 14) {
-                    player1.hand[k - 7] = k;
-                    setTiles[k] = { key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [1] };
+                if (currentPlayerId < numOfPlayers) {
+                    if (!players[currentPlayerId]) {
+                        players[currentPlayerId] = { id: currentPlayerId, hand: [] };
+                    }
+                    players[currentPlayerId].hand.push(k);
+                    assignedTiles++;
+                    setTiles[k] = { key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [currentPlayerId] };
+                    if (assignedTiles === tilesToAssign) {
+                        currentPlayerId++;
+                        assignedTiles = 0;
+                    }
                 }
                 else {
-                    house.hand[k - 14] = k;
+                    house.hand.push(k);
                     setTiles[k] = { key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [] };
                 }
                 operations.push({ set: setTiles[k] });
@@ -91,8 +103,9 @@ var gameLogic;
         var board = getInitialBoard();
         board.allTiles = setTiles;
         operations.push({ setTurn: { turnIndex: 0 } });
-        operations.push({ set: { key: 'player0', value: player0 } });
-        operations.push({ set: { key: 'player1', value: player1 } });
+        for (var i = 0; i < players.length; i++) {
+            operations.push({ set: { key: 'player' + i, value: players[i] } });
+        }
         operations.push({ set: { key: 'house', value: house } });
         operations.push({ set: { key: 'board', value: board } });
         operations.push({ set: { key: 'allTiles', value: setTiles } });
@@ -154,14 +167,27 @@ var gameLogic;
             return undefined;
         }
     }
+    function getVisibilityForAllPlayers(numOfPlayers) {
+        var visitibilities = [];
+        for (var i = 0; i < numOfPlayers; i++) {
+            visitibilities.push(i);
+        }
+        return visitibilities;
+    }
     /**
     * Returns the move that should be performed when player
     * with index turnIndexBeforeMove makes adds a domino to the board.
     */
     function createMove(board, playedTileId, play, turnIndexBeforeMove, players, house) {
         var operations, visibility, boardAfterMove, playerAfterMove, houseAfterMove;
-        if (getWinner(players[0]) === players[0].id || getWinner(players[1]) === players[1].id || isTie(board, players, house)) {
-            throw new Error("Can only make a move if the game is not over!");
+        //Check if someone has already won the game
+        for (var i = 0; i < players.length; i++) {
+            if (getWinner(players[i]) === players[i].id) {
+                throw new Error("Can only make a move if the game is not over! Player " + i + " has already won.");
+            }
+        }
+        if (isTie(board, players, house)) {
+            throw new Error("Can only make a move if the game is not over! The game is a tie");
         }
         boardAfterMove = angular.copy(board);
         playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
@@ -171,22 +197,25 @@ var gameLogic;
         if (!board.tiles || board.tiles.length === 0) {
             setBoardRoot(board, playedTileId);
             removeTileFromHand(playerAfterMove, playedTileId);
-            visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1] };
-            return getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+            visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length) };
+            var nextTurn = (turnIndexBeforeMove + 1) % players.length;
+            return getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
         }
         else if (Play.LEFT === play) {
             addTileToTheLeft(boardAfterMove, playedTileId);
             removeTileFromHand(playerAfterMove, playedTileId);
             visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1] };
             var endMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility);
-            return endMove ? endMove : getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+            var nextTurn = (turnIndexBeforeMove + 1) % players.length;
+            return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
         }
         else if (Play.RIGHT === play) {
             addTileToTheRight(boardAfterMove, playedTileId);
             removeTileFromHand(playerAfterMove, playedTileId);
             visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1] };
             var endMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility);
-            return endMove ? endMove : getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+            var nextTurn = (turnIndexBeforeMove + 1) % players.length;
+            return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
         }
         else if (Play.BUY === play) {
             if (getNumberOfRemainingTiles(house) === 0) {
@@ -230,6 +259,7 @@ var gameLogic;
         var move = params.move;
         var turnIndexBeforeMove = params.turnIndexBeforeMove;
         var stateBeforeMove = params.stateBeforeMove;
+        var numberOfPlayers = params.numberOfPlayers;
         /*********************************************************************
         * 1. If the stateBeforeMove is empty, then it should be the first
         *    move. Set the board of stateBeforeMove to be the initial board.
@@ -237,9 +267,12 @@ var gameLogic;
         *    one or more dominoes.
         ********************************************************************/
         try {
+            if (numberOfPlayers > 4) {
+                throw Error("A maximum of 4 players are allowed for this game");
+            }
             var expectedMove;
             if (!params.stateBeforeMove) {
-                expectedMove = getInitialMove();
+                expectedMove = getInitialMove(numberOfPlayers);
             }
             else {
                 var deltaValue = stateBeforeMove.delta;
@@ -249,10 +282,11 @@ var gameLogic;
                 var house = stateBeforeMove.house;
                 expectedMove = createMove(stateBeforeMove.board, playedTile, play, turnIndexBeforeMove, players, house);
             }
-            /*  console.log(JSON.stringify(move));
-              console.log("---------------------")
-              console.log(JSON.stringify(expectedMove));*/
+            /*  console.log(JSON.stringify(move));*/
+            console.log("---------------------");
+            console.log(JSON.stringify(expectedMove));
             if (!angular.equals(move, expectedMove)) {
+                //  logDiffToConsole(move, expectedMove);
                 return false;
             }
         }
