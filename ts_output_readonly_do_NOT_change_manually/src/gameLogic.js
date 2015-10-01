@@ -19,11 +19,11 @@ var gameLogic;
         tile.rightNumber = temp;
     }
     function addTileToTheRight(board, tileId) {
-        var rightNumber = board.allTiles[board.rightMost].value.rightNumber;
+        var rightNumber = board.allTiles[board.tiles[board.rightMost]].value.rightNumber;
         var playedTile = board.allTiles[tileId].value;
         if (playedTile.leftNumber !== rightNumber) {
             if (playedTile.rightNumber !== rightNumber) {
-                throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when right tile is " + board.allTiles[board.rightMost].value);
+                throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when right tile is " + JSON.stringify(board.allTiles[board.tiles[board.rightMost]].value));
             }
             else {
                 flipNumbers(playedTile);
@@ -33,11 +33,11 @@ var gameLogic;
         board.rightMost = 2 * board.rightMost + 2;
     }
     function addTileToTheLeft(board, tileId) {
-        var leftNumber = board.allTiles[board.leftMost].value.leftNumber;
+        var leftNumber = board.allTiles[board.tiles[board.leftMost]].value.leftNumber;
         var playedTile = board.allTiles[tileId].value;
         if (playedTile.rightNumber !== leftNumber) {
             if (playedTile.leftNumber !== leftNumber) {
-                throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when left tile is " + board.allTiles[board.leftMost].value);
+                throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when left tile is " + board.allTiles[board.tiles[board.leftMost]].value.leftNumber);
             }
             else {
                 flipNumbers(playedTile);
@@ -46,19 +46,12 @@ var gameLogic;
         board.tiles[2 * board.leftMost + 1] = tileId; //the left child of the current left title is at index 2 * i + 1. Initialize it to title with index playedTileId
         board.leftMost = 2 * board.leftMost + 1;
     }
-    function containsTile(board, tileId) {
-        var index = board.tiles.indexOf(tileId);
-        if (index) {
-            return true;
-        }
-        return false;
-    }
     function addTileToHand(player, tile) {
-        this.hand.push(tile);
+        player.hand.push(tile);
     }
     function removeTileFromHand(player, tile) {
         var index = player.hand.indexOf(tile, 0);
-        if (index != undefined) {
+        if (index !== undefined && index !== -1) {
             player.hand.splice(index, 1);
         }
         else {
@@ -126,7 +119,7 @@ var gameLogic;
         if (!board.tiles) {
             return false;
         }
-        var allTiles = board.allTiles, leftTile = allTiles[board.leftMost].value, rightTile = allTiles[board.rightMost].value;
+        var allTiles = board.allTiles, leftTile = allTiles[board.tiles[board.leftMost]].value, rightTile = allTiles[board.tiles[board.rightMost]].value;
         if (hasTileWithNumbers(house, allTiles, leftTile.leftNumber, rightTile.rightNumber)) {
             return false;
         }
@@ -147,14 +140,14 @@ var gameLogic;
         return operations;
     }
     function getMoveIfEndGame(player, boardAfterMove, delta, visibility) {
-        var operations;
+        var operations = [];
         if (getWinner(player)) {
             var endScores = [];
             endScores[player.id] = 1;
-            operations.concat([{ endMatch: { endMatchScores: endScores } }]);
-            operations.concat([{ set: { key: 'board', value: boardAfterMove } }]);
-            operations.concat([{ set: { key: 'delta', value: delta } }]);
-            operations.concat([{ setVisibility: visibility }]);
+            operations.push({ endMatch: { endMatchScores: endScores } });
+            operations.push({ set: { key: 'board', value: boardAfterMove } });
+            operations.push({ set: { key: 'delta', value: delta } });
+            operations.push({ setVisibility: visibility });
             return operations;
         }
         else {
@@ -174,7 +167,6 @@ var gameLogic;
         playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
         houseAfterMove = angular.copy(house);
         var delta = { tileId: playedTileId, play: play };
-        console.log("createMove decide");
         //If there was no tile on the board before, this is the first tile
         if (!board.tiles || board.tiles.length === 0) {
             setBoardRoot(board, playedTileId);
@@ -183,7 +175,6 @@ var gameLogic;
             return getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
         }
         else if (Play.LEFT === play) {
-            console.log("createMove L");
             addTileToTheLeft(boardAfterMove, playedTileId);
             removeTileFromHand(playerAfterMove, playedTileId);
             visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1] };
@@ -191,7 +182,6 @@ var gameLogic;
             return endMove ? endMove : getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
         }
         else if (Play.RIGHT === play) {
-            console.log("createMove R");
             addTileToTheRight(boardAfterMove, playedTileId);
             removeTileFromHand(playerAfterMove, playedTileId);
             visibility = { key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1] };
@@ -199,7 +189,6 @@ var gameLogic;
             return endMove ? endMove : getGenericMove(1 - turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
         }
         else if (Play.BUY === play) {
-            console.log("createMove B");
             if (getNumberOfRemainingTiles(house) === 0) {
                 throw new Error("One cannot buy from the house when it has no tiles");
             }
@@ -211,11 +200,24 @@ var gameLogic;
             return operations;
         }
         else {
-            console.log("createMove U");
             throw new Error("Unknown play");
         }
     }
     gameLogic.createMove = createMove;
+    //This is a helper function for debugging
+    /*function logDiffToConsole(o1, o2) {
+      if (angular.equals(o1, o2))
+      {
+        return;
+      }
+      console.log("Found diff between: ", o1, o2);
+      if (!angular.equals(Object.keys(o1), Object.keys(o2))) {
+        console.log("Keys different: ", JSON.stringify(Object.keys(o1)), JSON.stringify(Object.keys(o2)));
+      }
+      for (var k in o1) {
+        logDiffToConsole(o1[k], o2[k]);
+      }
+    }*/
     /**
        * Check if the move is OK.
        *
@@ -247,7 +249,9 @@ var gameLogic;
                 var house = stateBeforeMove.house;
                 expectedMove = createMove(stateBeforeMove.board, playedTile, play, turnIndexBeforeMove, players, house);
             }
-            //console.log(JSON.stringify(expectedMove));
+            /*  console.log(JSON.stringify(move));
+              console.log("---------------------")
+              console.log(JSON.stringify(expectedMove));*/
             if (!angular.equals(move, expectedMove)) {
                 return false;
             }
