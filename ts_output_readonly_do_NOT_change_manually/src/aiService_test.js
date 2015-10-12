@@ -1,73 +1,17 @@
 describe("aiService", function () {
-    it("X finds an immediate winning move", function () {
-        var move = aiService.createComputerMove([['', '', 'O'],
-            ['O', 'X', 'X'],
-            ['O', 'X', 'O']], 0, { maxDepth: 1 });
-        var expectedMove = [{ endMatch: { endMatchScores: [1, 0] } },
-            { set: { key: 'board', value: [['', 'X', 'O'],
-                        ['O', 'X', 'X'],
-                        ['O', 'X', 'O']] } },
-            { set: { key: 'delta', value: { row: 0, col: 1 } } }];
+    it("Player 0 finds an immediate first Move", function () {
+        var move = aiService.createComputerMove(0, { "tile0": { "leftNumber": 2, "rightNumber": 6 }, "tile1": { "leftNumber": 0, "rightNumber": 5 }, "tile2": { "leftNumber": 4, "rightNumber": 5 }, "tile3": { "leftNumber": 1, "rightNumber": 2 }, "tile4": { "leftNumber": 6, "rightNumber": 6 }, "tile5": { "leftNumber": 1, "rightNumber": 1 }, "tile6": { "leftNumber": 3, "rightNumber": 3 }, "tile7": null, "tile8": null, "tile9": null, "tile10": null, "tile11": null, "tile12": null, "tile13": null, "tile14": null, "tile15": null, "tile16": null, "tile17": null, "tile18": null, "tile19": null, "tile20": null, "tile21": null, "tile22": null, "tile23": null, "tile24": null, "tile25": null, "tile26": null, "tile27": null, "house": { "id": -1, "hand": ["tile14", "tile15", "tile16", "tile17", "tile18", "tile19", "tile20", "tile21", "tile22", "tile23", "tile24", "tile25", "tile26", "tile27"] }, "board": {}, "players": [{ "id": 0, "hand": ["tile0", "tile1", "tile2", "tile3", "tile4", "tile5", "tile6"] }, { "id": 1, "hand": ["tile7", "tile8", "tile9", "tile10", "tile11", "tile12", "tile13"] }] });
+        var expectedMove = [{ "setTurn": { "turnIndex": 1 } }, { "set": { "key": "board", "value": { "root": { "leftNumber": 2, "rightNumber": 6 }, "leftMost": { "leftNumber": 2, "rightNumber": 6 }, "rightMost": { "leftNumber": 2, "rightNumber": 6 } } } }, { "set": { "key": "delta", "value": { "tileKey": "tile0", play: 1 } } }, { "setVisibility": { "key": "tile0", "visibleToPlayerIndexes": [0, 1] } }, { "set": { "key": "players", "value": [{ "id": 0, "hand": ["tile1", "tile2", "tile3", "tile4", "tile5", "tile6"] }, { "id": 1, "hand": ["tile7", "tile8", "tile9", "tile10", "tile11", "tile12", "tile13"] }] } }];
         expect(angular.equals(move, expectedMove)).toBe(true);
     });
-    it("O finds an immediate winning move", function () {
-        var move = aiService.createComputerMove([['', '', 'O'],
-            ['O', 'X', 'X'],
-            ['O', 'X', 'O']], 1, { maxDepth: 1 });
-        expect(angular.equals(move[2].set.value, { row: 0, col: 0 })).toBe(true);
+    it("Player 1 finds an immediate move", function () {
+        var move = aiService.createComputerMove(1, { "tile0": { "leftNumber": 2, "rightNumber": 6 }, "tile1": null, "tile2": null, "tile3": null, "tile4": null, "tile5": null, "tile6": null, "tile7": { "leftNumber": 1, "rightNumber": 3 }, "tile8": { "leftNumber": 5, "rightNumber": 5 }, "tile9": { "leftNumber": 1, "rightNumber": 4 }, "tile10": { "leftNumber": 4, "rightNumber": 6 }, "tile11": { "leftNumber": 2, "rightNumber": 3 }, "tile12": { "leftNumber": 4, "rightNumber": 4 }, "tile13": { "leftNumber": 1, "rightNumber": 6 }, "tile14": null, "tile15": null, "tile16": null, "tile17": null, "tile18": null, "tile19": null, "tile20": null, "tile21": null, "tile22": null, "tile23": null, "tile24": null, "tile25": null, "tile26": null, "tile27": null, "house": { "id": -1, "hand": ["tile14", "tile15", "tile16", "tile17", "tile18", "tile19", "tile20", "tile21", "tile22", "tile23", "tile24", "tile25", "tile26", "tile27"] }, "board": { "root": { "leftNumber": 2, "rightNumber": 6 }, "leftMost": { "leftNumber": 2, "rightNumber": 6 }, "rightMost": { "leftNumber": 2, "rightNumber": 6 } }, "players": [{ "id": 0, "hand": ["tile1", "tile2", "tile3", "tile4", "tile5", "tile6"] }, { "id": 1, "hand": ["tile7", "tile8", "tile9", "tile10", "tile11", "tile12", "tile13"] }], "delta": { "tileKey": "tile9", "play": Play.LEFT } });
+        var expectedMove = [{ "setTurn": { "turnIndex": 0 } }, { "set": { "key": "board", "value": { "root": { "leftNumber": 2, "rightNumber": 6, "rightTile": { "leftNumber": 6, "rightNumber": 4 } }, "leftMost": { "leftNumber": 2, "rightNumber": 6 }, "rightMost": { "leftNumber": 6, "rightNumber": 4 } } } }, { "set": { "key": "delta", "value": { "tileKey": "tile10", "play": 1 } } }, { "setVisibility": { "key": "tile10", "visibleToPlayerIndexes": [0, 1] } }, { "set": { "key": "players", "value": [{ "id": 0, "hand": ["tile1", "tile2", "tile3", "tile4", "tile5", "tile6"] }, { "id": 1, "hand": ["tile7", "tile8", "tile9", "tile11", "tile12", "tile13"] }] } }];
+        expect(angular.equals(move, expectedMove)).toBe(true);
     });
-    it("X prevents an immediate win", function () {
-        var move = aiService.createComputerMove([['X', '', ''],
-            ['O', 'O', ''],
-            ['X', '', '']], 0, { maxDepth: 2 });
-        expect(angular.equals(move[2].set.value, { row: 1, col: 2 })).toBe(true);
-    });
-    it("O prevents an immediate win", function () {
-        var move = aiService.createComputerMove([['X', 'X', ''],
-            ['O', '', ''],
-            ['', '', '']], 1, { maxDepth: 2 });
-        expect(angular.equals(move[2].set.value, { row: 0, col: 2 })).toBe(true);
-    });
-    it("O prevents another immediate win", function () {
-        var move = aiService.createComputerMove([['X', 'O', ''],
-            ['X', 'O', ''],
-            ['', 'X', '']], 1, { maxDepth: 2 });
-        expect(angular.equals(move[2].set.value, { row: 2, col: 0 })).toBe(true);
-    });
-    it("X finds a winning move that will lead to winning in 2 steps", function () {
-        var move = aiService.createComputerMove([['X', '', ''],
-            ['O', 'X', ''],
-            ['', '', 'O']], 0, { maxDepth: 3 });
-        expect(angular.equals(move[2].set.value, { row: 0, col: 1 })).toBe(true);
-    });
-    it("O finds a winning move that will lead to winning in 2 steps", function () {
-        var move = aiService.createComputerMove([['', 'X', ''],
-            ['X', 'X', 'O'],
-            ['', 'O', '']], 1, { maxDepth: 3 });
-        expect(angular.equals(move[2].set.value, { row: 2, col: 2 })).toBe(true);
-    });
-    it("O finds a cool winning move that will lead to winning in 2 steps", function () {
-        var move = aiService.createComputerMove([['X', 'O', 'X'],
-            ['X', '', ''],
-            ['O', '', '']], 1, { maxDepth: 3 });
-        expect(angular.equals(move[2].set.value, { row: 2, col: 1 })).toBe(true);
-    });
-    it("O finds the wrong move due to small depth", function () {
-        var move = aiService.createComputerMove([['X', '', ''],
-            ['', '', ''],
-            ['', '', '']], 1, { maxDepth: 3 });
-        expect(angular.equals(move[2].set.value, { row: 0, col: 1 })).toBe(true);
-    });
-    it("O finds the correct move when depth is big enough", function () {
-        var move = aiService.createComputerMove([['X', '', ''],
-            ['', '', ''],
-            ['', '', '']], 1, { maxDepth: 6 });
-        expect(angular.equals(move[2].set.value, { row: 1, col: 1 })).toBe(true);
-    });
-    it("X finds a winning move that will lead to winning in 2 steps", function () {
-        var move = aiService.createComputerMove([['', '', ''],
-            ['O', 'X', ''],
-            ['', '', '']], 0, { maxDepth: 5 });
-        expect(angular.equals(move[2].set.value, { row: 0, col: 0 })).toBe(true);
+    it("Player 0 finds an immediate winning move", function () {
+        var move = aiService.createComputerMove(0, { "tile0": { "leftNumber": 2, "rightNumber": 6 }, "tile1": { "leftNumber": 4, "rightNumber": 5 }, "tile2": { "leftNumber": 4, "rightNumber": 5 }, "tile3": { "leftNumber": 1, "rightNumber": 2 }, "tile4": null, "tile5": { "leftNumber": 1, "rightNumber": 1 }, "tile6": { "leftNumber": 3, "rightNumber": 3 }, "tile7": { "leftNumber": 1, "rightNumber": 3 }, "tile8": { "leftNumber": 5, "rightNumber": 5 }, "tile9": { "leftNumber": 1, "rightNumber": 4 }, "tile10": { "leftNumber": 4, "rightNumber": 6 }, "tile11": { "leftNumber": 2, "rightNumber": 3 }, "tile12": { "leftNumber": 4, "rightNumber": 4 }, "tile13": null, "tile14": { "leftNumber": 2, "rightNumber": 5 }, "tile15": null, "tile16": null, "tile17": null, "tile18": null, "tile19": null, "tile20": null, "tile21": null, "tile22": null, "tile23": null, "tile24": null, "tile25": null, "tile26": null, "tile27": null, "house": { "id": -1, "hand": ["tile14", "tile15", "tile16", "tile17", "tile18", "tile19", "tile20", "tile21", "tile22", "tile23", "tile24", "tile25", "tile26", "tile27"] }, "board": { "root": { "leftNumber": 2, "rightNumber": 6, "rightTile": { "leftNumber": 5, "rightNumber": 5, "rightTile": { "leftNumber": 4, "rightNumber": 4 } }, "leftTile": { "leftNumber": 1, "rightNumber": 2, "leftTile": { "leftNumber": 1, "rightNumber": 1 } } }, "leftMost": { "leftNumber": 1, "rightNumber": 1 }, "rightMost": { "leftNumber": 4, "rightNumber": 4 } }, "players": [{ "id": 0, "hand": ["tile1"] }, { "id": 1, "hand": ["tile4", "tile13"] }], "delta": { "tileKey": "tile10", "play": Play.RIGHT } });
+        var expectedMove = [{ "endMatch": { "endMatchScores": [1, 0] } }, { "set": { "key": "board", "value": { "root": { "leftNumber": 2, "rightNumber": 6, "rightTile": { "leftNumber": 5, "rightNumber": 5, "rightTile": { "leftNumber": 4, "rightNumber": 4, "rightTile": { "leftNumber": 4, "rightNumber": 5 } } }, "leftTile": { "leftNumber": 1, "rightNumber": 2, "leftTile": { "leftNumber": 1, "rightNumber": 1 } } }, "leftMost": { "leftNumber": 1, "rightNumber": 1 }, "rightMost": { "leftNumber": 4, "rightNumber": 5 } } } }, { "set": { "key": "delta", "value": { "tileKey": "tile1", "play": 1 } } }, { "setVisibility": { "key": "tile1", "visibleToPlayerIndexes": [0, 1] } }];
+        expect(angular.equals(move, expectedMove)).toBe(true);
     });
 });

@@ -305,13 +305,18 @@ module gameLogic {
   * with index turnIndexBeforeMove makes adds a domino to the board.
   */
   export function createMove(
-    board: IBoard, state: IState, playedTileKey: string, play: Play, turnIndexBeforeMove: number, players: IPlayer[], house: IPlayer): IMove {
+    state: IState, turnIndexBeforeMove: number): IMove {
     var operations: IMove,
     visibility: ISetVisibility,
     boardAfterMove: IBoard,
     playersAfterMove: IPlayer[],
     playerAfterMove: IPlayer,
-    houseAfterMove: IPlayer;
+    houseAfterMove: IPlayer,
+    playedTileKey: string = state.delta.tileKey,
+    play: Play = state.delta.play,
+    players: IPlayer[] = state.players,
+    house: IPlayer = state.house,
+    board: IBoard = state.board;
 
     //Check if someone has already won the game
     for (var i = 0; i < players.length; i++)
@@ -442,13 +447,8 @@ module gameLogic {
       }
       else
       {
-        var deltaValue: BoardDelta = stateBeforeMove.delta;
-        var playedTileKey: string = deltaValue.tileKey;
-        var play: Play = deltaValue.play;
-        var players: IPlayer[] = stateBeforeMove.players;
-        var house: IPlayer = stateBeforeMove.house;
 
-        expectedMove = createMove(stateBeforeMove.board, stateBeforeMove, playedTileKey, play, turnIndexBeforeMove, players, house);
+        expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove);
       }
 
     /*  console.log(JSON.stringify(move));*/

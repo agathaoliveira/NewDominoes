@@ -198,8 +198,8 @@ var gameLogic;
     * Returns the move that should be performed when player
     * with index turnIndexBeforeMove makes adds a domino to the board.
     */
-    function createMove(board, state, playedTileKey, play, turnIndexBeforeMove, players, house) {
-        var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove;
+    function createMove(state, turnIndexBeforeMove) {
+        var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove, playedTileKey = state.delta.tileKey, play = state.delta.play, players = state.players, house = state.house, board = state.board;
         //Check if someone has already won the game
         for (var i = 0; i < players.length; i++) {
             if (getWinner(players[i]) === players[i].id) {
@@ -297,12 +297,7 @@ var gameLogic;
                 expectedMove = getInitialMove(numberOfPlayers);
             }
             else {
-                var deltaValue = stateBeforeMove.delta;
-                var playedTileKey = deltaValue.tileKey;
-                var play = deltaValue.play;
-                var players = stateBeforeMove.players;
-                var house = stateBeforeMove.house;
-                expectedMove = createMove(stateBeforeMove.board, stateBeforeMove, playedTileKey, play, turnIndexBeforeMove, players, house);
+                expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove);
             }
             /*  console.log(JSON.stringify(move));*/
             //  console.log("---------------------")

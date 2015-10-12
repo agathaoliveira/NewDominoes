@@ -6,35 +6,54 @@ module aiService {
    * millisecondsLimit is a time limit, and maxDepth is a depth limit.
    */
   export function createComputerMove(
-      board: Board, playerIndex: number, alphaBetaLimits: IAlphaBetaLimits): IMove {
+      playerIndex: number, stateBeforeMove: IState): IMove {
     // We use alpha-beta search, where the search states are TicTacToe moves.
     // Recal that a TicTacToe move has 3 operations:
     // 0) endMatch or setTurn
     // 1) {set: {key: 'board', value: ...}}
     // 2) {set: {key: 'delta', value: ...}}]
-    return alphaBetaService.alphaBetaDecision(
-        [null, {set: {key: 'board', value: board}}],
-        playerIndex, getNextStates, getStateScoreForIndex0,
-        // If you want to see debugging output in the console, then surf to index.html?debug
-        window.location.search === '?debug' ? getDebugStateToString : null,
-        alphaBetaLimits);
-  }
 
-  function getStateScoreForIndex0(move: IMove, playerIndex: number): number {
-    if (move[0].endMatch) {
-      let endMatchScores = move[0].endMatch.endMatchScores;
-      return endMatchScores[0] > endMatchScores[1] ? Number.POSITIVE_INFINITY
-          : endMatchScores[0] < endMatchScores[1] ? Number.NEGATIVE_INFINITY
-          : 0;
+    var board: IBoard = stateBeforeMove.board;
+    var hand: string[] = stateBeforeMove.players[playerIndex].hand;
+
+    var key: string = undefined;
+    var play: Play = undefined;
+    for (var i = 0; i < hand.length; i++)
+    {
+      if (!board || !board.root)
+      {
+        play = Play.RIGHT;
+      }
+      else
+      {
+        play = hasNumbers(stateBeforeMove[hand[i]], board.leftMost.leftNumber, board.rightMost.rightNumber);
+      }
+      if (play)
+      {
+        key = hand[i];
+        break;
+      }
     }
-    return 0;
+
+    var delta: BoardDelta = key === undefined ? { tileKey: stateBeforeMove.house.hand[0], play: Play.BUY } : { tileKey: key, play: play }
+    stateBeforeMove.delta = delta;
+
+    var move: IMove = gameLogic.createMove(stateBeforeMove, playerIndex);
+
+    return move;
   }
 
-  function getNextStates(move: IMove, playerIndex: number): IMove[] {
-    return gameLogic.getPossibleMoves(move[1].set.value, playerIndex);
+  function hasNumbers(tile: ITile, leftNumber: number, rightNumber: number): Play
+  {
+    if (tile.leftNumber === leftNumber || tile.rightNumber === leftNumber)
+    {
+      return Play.LEFT;
+    }
+    else if (tile.leftNumber === rightNumber || tile.rightNumber ===  rightNumber)
+    {
+      return Play.RIGHT;
+    }
+      return undefined;
   }
 
-  function getDebugStateToString(move: IMove): string {
-    return "\n" + move[1].set.value.join("\n") + "\n";
-  }
 }
