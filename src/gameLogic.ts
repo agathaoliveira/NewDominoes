@@ -1,36 +1,32 @@
 interface ITile {
   leftNumber: number;
   rightNumber: number;
+  leftTile?: ITile;
+  rightTile?: ITile;
 }
 
 /*The domino board is stored as a binary tree. Children are added either to the
 *left most position or the right most, since on the game rules, the dominos are
-*only played to the left or the right. An array is used to store the tree nodes.
-*The numbers on the array are the indexes of the tile keys stored on the all
-*tiles arrray. */
-interface IBoard
-{
-  tiles?: number[];
-  leftMost?: number; //the index of the left most child
-  rightMost?: number; //the index of the right most child
-  allTiles?: ISet[]; //all the tiles in order
+*only played to the left or the right. The tree is represented as a linked list.
+*/
+interface IBoard {
+  root: ITile;
+  leftMost?: ITile; //the index of the left most child
+  rightMost?: ITile; //the index of the right most child
 }
 
-enum Play
-{
+enum Play {
   LEFT, RIGHT, BUY
 }
 
 interface BoardDelta {
-  tileId: number;
+  tileKey: string;
   play: Play;
 }
 
-interface IPlayer
-{
+interface IPlayer {
   id: number;
-  hand: number[];
-
+  hand: string[];
 }
 
 interface IState {
@@ -42,32 +38,26 @@ interface IState {
 
 module gameLogic {
 
-  function setBoardRoot(board: IBoard, tileId: number)
-  {
-    board.tiles = [];
-    board.tiles[0] = tileId;
-    //Initialize right and left ot hte root
-    board.rightMost = 0;
-    board.leftMost = 0;
+  function setBoardRoot(board: IBoard, tile: ITile){
+    board.root = tile;
+    board.leftMost = tile;
+    board.rightMost = tile;
   }
 
-  function flipNumbers(tile: ITile)
-  {
+  function flipNumbers(tile: ITile){
     var temp:number = tile.leftNumber;
     tile.leftNumber = tile.rightNumber;
     tile.rightNumber = temp;
   }
 
-  function addTileToTheRight(board: IBoard, tileId: number)
-  {
-    var rightNumber: number = board.allTiles[board.tiles[board.rightMost]].value.rightNumber;
-    var playedTile: ITile = board.allTiles[tileId].value;
+  function addTileToTheRight(board: IBoard, playedTile: ITile){
+    var rightNumber: number = board.rightMost.rightNumber;
 
     if (playedTile.leftNumber !== rightNumber)
     {
       if (playedTile.rightNumber !== rightNumber)
       {
-        throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when right tile is " + JSON.stringify(board.allTiles[board.tiles[board.rightMost]].value));
+        throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when right tile is " + JSON.stringify(board.rightMost));
       }
       else
       {
@@ -75,44 +65,54 @@ module gameLogic {
       }
     }
 
-    board.tiles[2*board.rightMost + 2] = tileId; //the right child of the current right title is at index 2 * i + 2. Initialize it to title with index playedTileId
-    board.rightMost = 2 * board.rightMost + 2;
+    var currentTile = board.root;
+    while (currentTile.rightNumber != board.rightMost.rightNumber && currentTile.leftNumber != board.rightMost.leftNumber)
+    {
+      currentTile = currentTile.rightTile;
+    }
 
+    currentTile.rightTile = playedTile;
+    board.rightMost = playedTile;
   }
 
-  function addTileToTheLeft(board: IBoard, tileId: number)
-  {
-    var leftNumber: number = board.allTiles[board.tiles[board.leftMost]].value.leftNumber;
-    var playedTile: ITile = board.allTiles[tileId].value;
+  function addTileToTheLeft(board: IBoard, playedTile: ITile){
+    var leftNumber: number = board.leftMost.leftNumber;
+
     if (playedTile.rightNumber !== leftNumber)
     {
       if (playedTile.leftNumber !== leftNumber)
       {
-        throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when left tile is " + board.allTiles[board.tiles[board.leftMost]].value.leftNumber);
+        throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the left when left tile is " + JSON.stringify(board.leftMost));
       }
       else
       {
         flipNumbers(playedTile);
       }
     }
-    board.tiles[2*board.leftMost + 1] = tileId; //the left child of the current left title is at index 2 * i + 1. Initialize it to title with index playedTileId
-    board.leftMost = 2 * board.leftMost + 1;
+
+    var currentTile = board.root;
+    while (currentTile.rightNumber != board.leftMost.rightNumber && currentTile.leftNumber != board.leftMost.leftNumber)
+    {
+      currentTile = currentTile.leftTile;
+    }
+
+    currentTile.leftTile = playedTile;
+    board.leftMost = playedTile;
   }
 
-  function addTileToHand(player: IPlayer, tile: number)
-  {
-    player.hand.push(tile);
+  function addTileToHand(player: IPlayer, tileKey: string){
+    player.hand.push(tileKey);
   }
 
-  function removeTileFromHand(player: IPlayer, tile: number)
+  function removeTileFromHand(player: IPlayer, tileKey: string)
   {
-    var index = player.hand.indexOf(tile, 0);
+    var index = player.hand.indexOf(tileKey, 0);
     if (index !== undefined && index !== -1) {
       player.hand.splice(index, 1);
     }
     else
     {
-      throw new Error("Unknown array element " + tile);
+      throw new Error("Unknown array element " + JSON.stringify(tileKey));
     }
   }
 
@@ -122,11 +122,12 @@ module gameLogic {
   }
 
   export function getInitialBoard(): IBoard {
-    return {};
+    return <IBoard>{};
   }
 
   export function getInitialMove(numOfPlayers: number): IMove {
       var operations: IMove = [],
+      visibilityOperations: IMove = [],
       players: IPlayer[] = [],
       house: IPlayer = {id: -1, hand: []},
       setTiles: ISet[] = [],
@@ -146,9 +147,9 @@ module gameLogic {
       k = 0;
       assignedTiles = 0;
       var currentPlayerId: number = 0;
-      for(i = 0; i < 7; i++)
+      for (i = 0; i < 7; i++)
       {
-        for(j = 0; j <= i; j++)
+        for (j = 0; j <= i; j++)
         {
           var currentTile: ITile = {leftNumber: j, rightNumber: i};
 
@@ -160,9 +161,11 @@ module gameLogic {
               players[currentPlayerId] = <IPlayer>{ id: currentPlayerId, hand: [] };
             }
 
-            players[currentPlayerId].hand.push(k);
+            players[currentPlayerId].hand.push('tile' + k);
+            setVisibilities[k] = {key: 'tile' + k, visibleToPlayerIndexes: [currentPlayerId] };
+
             assignedTiles++;
-            setTiles[k] = {key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [currentPlayerId] };
+            setTiles[k] = {key: 'tile' + k, value: currentTile };
 
             if (assignedTiles === tilesToAssign)
             {
@@ -172,33 +175,32 @@ module gameLogic {
           }
           else
           {
-            house.hand.push(k);
-            setTiles[k] = {key: 'tile' + k, value: currentTile, visibleToPlayerIndexes: [] };
+            house.hand.push('tile' + k);
+            setTiles[k] = {key: 'tile' + k, value: currentTile };
+            setVisibilities[k] = {key: 'tile' + k, visibleToPlayerIndexes: [] };
           }
 
           operations.push({set: setTiles[k]});
+          visibilityOperations.push({ setVisibility: setVisibilities[k] });
           shuffleKeys.keys.push('tile' +  k);
           k++;
         }
       }
 
       var board:IBoard = getInitialBoard();
-      board.allTiles = setTiles;
 
       operations.push({setTurn: {turnIndex: 0}});
 
-      for (var i = 0; i < players.length; i++)
+      /*for (var i = 0; i < players.length; i++)
       {
         operations.push({set: {key: 'player' + i, value: players[i]}});
-      }
+      }*/
 
       operations.push({set: {key: 'house', value: house}});
       operations.push({set: {key: 'board', value: board}});
-      operations.push({set: {key: 'allTiles', value: setTiles}});
       operations.push({shuffle: shuffleKeys});
-
-
-      return operations;
+      operations.push({set: {key: 'players', value: players}});
+      return operations.concat(visibilityOperations);;
   }
 
   function getWinner(currentPlayer: IPlayer): number
@@ -211,68 +213,67 @@ module gameLogic {
     return undefined;
   }
 
-  function hasTileWithNumbers(player: IPlayer, allTiles: ISet[], firstNumber: number, secondNumber: number): boolean
+/*  function hasTileWithNumbers(player: IPlayer, state: IState, firstNumber: number, secondNumber: number): boolean
   {
-    for (var i = 0; i < player.hand.length; i++)
-    {
-      var tile: ITile = allTiles[player.hand[i]].value;
-      if (tile.leftNumber === firstNumber || tile.rightNumber === firstNumber || tile.leftNumber === secondNumber || tile.rightNumber === secondNumber)
-      {
+    for (var i = 0; i < player.hand.length; i++){
+      var tile: ITile = state[player.hand[i]];
+      if (tile.leftNumber === firstNumber || tile.rightNumber === secondNumber ||
+        tile.leftNumber === secondNumber || tile.rightNumber === secondNumber){
         return true;
       }
     }
     return false;
   }
 
-  function isTie(board: IBoard, players: IPlayer[], house: IPlayer): boolean{
+  function isTie(board: IBoard, state: IState, players: IPlayer[], house: IPlayer): boolean{
 
-    if (!board.tiles)
-    {
+    if (!board.root){
       return false;
     }
 
-    var allTiles: ISet[] = board.allTiles,
-    leftTile: ITile = allTiles[board.tiles[board.leftMost]].value,
-    rightTile: ITile = allTiles[board.tiles[board.rightMost]].value;
+    var leftTile: ITile = board.leftMost;
+    var rightTile: ITile = board.rightMost;
 
-
-    if (hasTileWithNumbers(house, allTiles, leftTile.leftNumber, rightTile.rightNumber))
-    {
+    if (hasTileWithNumbers(house, state, leftTile.leftNumber, rightTile.rightNumber)){
       return false;
     }
 
-    for(var i = 0; i < players.length; i++)
-    {
-      if (hasTileWithNumbers(players[i], allTiles, leftTile.leftNumber, rightTile.rightNumber))
-      {
+    for (var i = 0; i < players.length; i++){
+      if (hasTileWithNumbers(players[i], state, leftTile.leftNumber, rightTile.rightNumber)){
         return false;
       }
     }
 
     return true;
-  }
+  }*/
 
   function getGenericMove(turn: number, boardAfterMove: IBoard, delta: BoardDelta, visibility: ISetVisibility,
-  playerIndex: number, player: IPlayer): IMove
+  players: IPlayer[]): IMove
   {
     var operations: IMove = [];
 
     operations.push({setTurn: {turnIndex: turn}});
     operations.push({set: {key: 'board', value: boardAfterMove}});
     operations.push({set: {key: 'delta', value: delta}});
-    operations.push({setVisibility: visibility})
-    operations.push({set: {key: 'player' + playerIndex, value: player}});
+    operations.push({setVisibility: visibility});
+
+    operations.push({set: {key: 'players', value: players}});
 
     return operations;
   }
 
-  function getMoveIfEndGame(player: IPlayer, boardAfterMove: IBoard, delta: BoardDelta, visibility: ISetVisibility): IMove
+  function getMoveIfEndGame(player: IPlayer, boardAfterMove: IBoard, delta: BoardDelta, visibility: ISetVisibility, numberOfPlayers: number): IMove
   {
     var operations: IMove = [];
 
-    if (getWinner(player))
+    if (getWinner(player) !== undefined)
     {
       var endScores: number[] = [];
+
+      for (var i = 0; i < numberOfPlayers; i++)
+      {
+        endScores[i] = 0;
+      }
       endScores[player.id] = 1;
 
       operations.push({endMatch: {endMatchScores: endScores}});
@@ -304,10 +305,11 @@ module gameLogic {
   * with index turnIndexBeforeMove makes adds a domino to the board.
   */
   export function createMove(
-    board: IBoard, playedTileId: number, play: Play, turnIndexBeforeMove: number, players: IPlayer[], house: IPlayer): IMove {
+    board: IBoard, state: IState, playedTileKey: string, play: Play, turnIndexBeforeMove: number, players: IPlayer[], house: IPlayer): IMove {
     var operations: IMove,
     visibility: ISetVisibility,
     boardAfterMove: IBoard,
+    playersAfterMove: IPlayer[],
     playerAfterMove: IPlayer,
     houseAfterMove: IPlayer;
 
@@ -320,52 +322,51 @@ module gameLogic {
       }
     }
 
-    if (isTie(board, players, house))
-    {
-      throw new Error("Can only make a move if the game is not over! The game is a tie");
-    }
-
     boardAfterMove = angular.copy(board);
+    playersAfterMove = angular.copy(players);
     playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
     houseAfterMove = angular.copy(house);
 
-    let delta: BoardDelta = {tileId: playedTileId, play: play};
+    let delta: BoardDelta = {tileKey: playedTileKey, play: play};
 
     //If there was no tile on the board before, this is the first tile
-    if (!board.tiles || board.tiles.length === 0)
+    if (!board.root)
     {
-      setBoardRoot(board, playedTileId);
-      removeTileFromHand(playerAfterMove, playedTileId);
-      visibility = {key: 'tile' + playedTileId, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length)};
+      setBoardRoot(boardAfterMove, state[playedTileKey]);
+      removeTileFromHand(playerAfterMove, playedTileKey);
+      visibility = {key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length)};
 
       var nextTurn = (turnIndexBeforeMove + 1) % players.length;
-      return getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+      playersAfterMove[turnIndexBeforeMove] = playerAfterMove;
+      return getGenericMove(nextTurn, boardAfterMove, delta, visibility, playersAfterMove);
     }
     else if (Play.LEFT === play)
     {
+      addTileToTheLeft(boardAfterMove, state[playedTileKey]);
+      removeTileFromHand(playerAfterMove, playedTileKey);
 
-        addTileToTheLeft(boardAfterMove, playedTileId);
-        removeTileFromHand(playerAfterMove, playedTileId);
+      visibility =  {key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length)};
 
-        visibility =  {key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1]};
-
-        var endMove:IMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility);
-        var nextTurn = (turnIndexBeforeMove + 1) % players.length;
-        return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+      var endMove:IMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility, players.length);
+      var nextTurn = (turnIndexBeforeMove + 1) % players.length;
+      playersAfterMove[turnIndexBeforeMove] = playerAfterMove;
+      return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, playersAfterMove);
     }
     else if (Play.RIGHT === play)
     {
-        addTileToTheRight(boardAfterMove, playedTileId);
-        removeTileFromHand(playerAfterMove, playedTileId);
+      addTileToTheRight(boardAfterMove, state[playedTileKey]);
+      removeTileFromHand(playerAfterMove, playedTileKey);
 
-        visibility =  {key: 'tile' + playedTileId, visibleToPlayerIndexes: [0, 1]};
-        var endMove:IMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility);
-        var nextTurn = (turnIndexBeforeMove + 1) % players.length;
-        return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+      visibility =  {key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length)};
+      var endMove:IMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility, players.length);
+      var nextTurn = (turnIndexBeforeMove + 1) % players.length;
+      playersAfterMove[turnIndexBeforeMove] = playerAfterMove;
+      return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, playersAfterMove);
     }
-    /*In this case, the domino tile should be removed from the house and
-    /*added to the plauers hand. It should only be visible to the player
-    /*who bought from the house.*/
+    /* In this case, the domino tile should be removed from the house and
+    * added to the player's hand. It should only be visible to the player
+    * who bought the tile from the house.
+    */
     else if (Play.BUY === play)
     {
       if (getNumberOfRemainingTiles(house) === 0)
@@ -373,12 +374,13 @@ module gameLogic {
         throw new Error("One cannot buy from the house when it has no tiles");
       }
 
-      removeTileFromHand(houseAfterMove, playedTileId);
-      addTileToHand(playerAfterMove, playedTileId);
+      removeTileFromHand(houseAfterMove, playedTileKey);
+      addTileToHand(playerAfterMove, playedTileKey);
 
-      visibility = {key: 'tile' + playedTileId, visibleToPlayerIndexes: [turnIndexBeforeMove]};
+      visibility = {key: playedTileKey, visibleToPlayerIndexes: [turnIndexBeforeMove]};
 
-      operations = getGenericMove(turnIndexBeforeMove, boardAfterMove, delta, visibility, turnIndexBeforeMove, playerAfterMove);
+      playersAfterMove[turnIndexBeforeMove] = playerAfterMove;
+      operations = getGenericMove(turnIndexBeforeMove, boardAfterMove, delta, visibility, playersAfterMove);
       operations.concat([{set: {key: 'house', value: houseAfterMove}}]);
 
       return operations;
@@ -427,12 +429,11 @@ module gameLogic {
     ********************************************************************/
 
     try {
-
       if (numberOfPlayers > 4)
       {
         throw Error("A maximum of 4 players are allowed for this game");
       }
-      
+
       var expectedMove: IMove;
 
       if (!params.stateBeforeMove)
@@ -442,17 +443,17 @@ module gameLogic {
       else
       {
         var deltaValue: BoardDelta = stateBeforeMove.delta;
-        var playedTile: number = deltaValue.tileId;
+        var playedTileKey: string = deltaValue.tileKey;
         var play: Play = deltaValue.play;
         var players: IPlayer[] = stateBeforeMove.players;
         var house: IPlayer = stateBeforeMove.house;
 
-        expectedMove = createMove(stateBeforeMove.board, playedTile, play, turnIndexBeforeMove, players, house);
+        expectedMove = createMove(stateBeforeMove.board, stateBeforeMove, playedTileKey, play, turnIndexBeforeMove, players, house);
       }
 
     /*  console.log(JSON.stringify(move));*/
-      console.log("---------------------")
-      console.log(JSON.stringify(expectedMove));
+    //  console.log("---------------------")
+  //    console.log(JSON.stringify(expectedMove));
 
       if (!angular.equals(move, expectedMove)) {
       //  logDiffToConsole(move, expectedMove);
@@ -463,6 +464,6 @@ module gameLogic {
       return false;
     }
     return true;
-}
+  }
 
 }
