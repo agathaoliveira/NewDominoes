@@ -22,13 +22,11 @@
 }
 
 .currentPlayer .tile{
-  width: 10%;
   height: 90%;
   top:2%;
 }
 
 .opponent .tile{
-  width: 10%;
   height: 90%;
   top:2%;
 }
@@ -41,7 +39,8 @@
   height:80%;
 }
 .game .content{
-   vertical-align: middle;
+  width: 100%;
+  text-align: center;
 }
 
 .game .content .verticalTile{
@@ -52,9 +51,13 @@
 .game .content .horizontalTile{
   width: 5%;
   height: 100%;
-  -ms-transform: rotate(90deg); /* IE 9 */
-  -webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
-  transform: rotate(90deg);
+  /*-ms-transform: rotate(90deg); /* IE 9 */
+  /*-webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
+  /*transform: rotate(90deg);
+  position: relative;
+  left: 10px;*/
+  -webkit-transform: rotate(90deg);
+  -webkit-transform-origin: 63% 60%;
 }
 
 .boneyard{
@@ -71,6 +74,7 @@
   -ms-transform: rotate(90deg); /* IE 9 */
   -webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
   transform: rotate(90deg);
+  display: block;
 }
 
 .slowlyAppear {
