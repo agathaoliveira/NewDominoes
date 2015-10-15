@@ -5,6 +5,74 @@
   border-bottom: 4pt solid black;
 }
 
+.opponent{
+  position:absolute;
+  top:0%;
+  left:0;
+  width:80%;
+  height:10%;
+}
+
+.currentPlayer{
+  position:absolute;
+  top:90%;
+  left:0;
+  width:80%;
+  height:10%;
+}
+
+.currentPlayer .tile{
+  width: 10%;
+  height: 90%;
+  top:2%;
+}
+
+.opponent .tile{
+  width: 10%;
+  height: 90%;
+  top:2%;
+}
+
+.game{
+  position:absolute;
+  top:10%;
+  left:0;
+  width:80%;
+  height:80%;
+}
+.game .content{
+   vertical-align: middle;
+}
+
+.game .content .verticalTile{
+  width: 5%;
+  height: 100%;
+}
+
+.game .content .horizontalTile{
+  width: 5%;
+  height: 100%;
+  -ms-transform: rotate(90deg); /* IE 9 */
+  -webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
+  transform: rotate(90deg);
+}
+
+.boneyard{
+  position:absolute;
+  top:0%;
+  left:80%;
+  width:20%;
+  height:100%;
+}
+
+.boneyard .tile{
+  width: 100%;
+  height: 10%;
+  -ms-transform: rotate(90deg); /* IE 9 */
+  -webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
+  transform: rotate(90deg);
+}
+
 .slowlyAppear {
 	-webkit-animation: slowlyAppear 0.5s linear;
 	-moz-animation: slowlyAppear 0.5s linear;

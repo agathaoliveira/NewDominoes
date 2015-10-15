@@ -2,7 +2,7 @@
 <html ng-app="myApp">
 <head>
   <meta charset="utf-8">
-  <title>Dominoes</title>
+  <title>Dominos</title>
   <meta name="description" content="TicTacToe game">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link rel="stylesheet" type="text/css" href="http://yoav-zibin.github.io/emulator/main.css">
@@ -20,272 +20,50 @@
 </head>
 <body>
 <div id="gameArea">
-  <!-- First row: ['X', 'O', ''] -->
-  <div style="position:absolute; top:0%; left:0; width:100%; height:33%;">
-    <div style="position:absolute; top:0; left:0%; width:33%; height:100%;"
-        class="r b">
-      <div style="width:100%; height: 100%">
-        <svg
-    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-    xmlns="http://www.w3.org/2000/svg"
-    xmlns:cc="http://web.resource.org/cc/"
-    xmlns:dc="http://purl.org/dc/elements/1.1/"
-    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-    xmlns:svg="http://www.w3.org/2000/svg"
-    xmlns:ns1="http://sozi.baierouge.fr"
-    xmlns:xlink="http://www.w3.org/1999/xlink"
-    id="svg2"
-    sodipodi:docname="domino-6-6.svg"
-    viewBox="0 0 500 1000"
-    sodipodi:version="0.32"
-    version="1.0"
-    inkscape:output_extension="org.inkscape.output.svg.inkscape"
-    inkscape:version="0.44+devel"
-    sodipodi:docbase="C:\Documents and Settings\Molumen\Desktop\dominoset"
-  >
-  <sodipodi:namedview
-      id="base"
-      bordercolor="#666666"
-      inkscape:pageshadow="2"
-      guidetolerance="10"
-      pagecolor="#ffffff"
-      gridtolerance="10000"
-      inkscape:window-height="951"
-      inkscape:zoom="0.71268239"
-      objecttolerance="10"
-      showgrid="false"
-      borderopacity="1.0"
-      inkscape:current-layer="layer2"
-      inkscape:cx="372.04724"
-      inkscape:cy="526.18109"
-      showguides="false"
-      inkscape:window-y="75"
-      inkscape:window-x="115"
-      inkscape:window-width="1280"
-      inkscape:pageopacity="0.0"
-      inkscape:document-units="px"
-  />
-  <g
-      id="layer1"
-      sodipodi:insensitive="true"
-      inkscape:label="Domino"
-      inkscape:groupmode="layer"
-      transform="translate(0 -52.362)"
-    >
-    <rect
-        id="rect1872"
-        style="stroke-linejoin:round;fill-rule:evenodd;stroke:#000000;stroke-width:27.517;fill:#ffffff"
-        rx="50"
-        ry="50"
-        height="972.48"
-        width="472.48"
-        y="66.121"
-        x="13.759"
-    />
-    <path
-        id="path15666"
-        style="stroke:#000000;stroke-width:10px;fill:none"
-        d="m45 552.36h410"
-    />
-  </g
-  >
-  <g
-      id="layer2"
-      inkscape:label="Pips"
-      inkscape:groupmode="layer"
-      transform="translate(0 -52.362)"
-    >
-    <circle
-        id="circle10"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="456"
-        sodipodi:cy="456"
-        cx="110"
-        r="50"
-        sodipodi:cx="110"
-    />
-    <circle
-        id="circle12"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="312"
-        sodipodi:cy="312"
-        cx="110"
-        r="50"
-        sodipodi:cx="110"
-    />
-    <circle
-        id="circle14"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="168"
-        sodipodi:cy="168"
-        cx="110"
-        r="50"
-        sodipodi:cx="110"
-    />
-    <circle
-        id="circle16"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="456"
-        sodipodi:cy="456"
-        cx="390"
-        r="50"
-        sodipodi:cx="390"
-    />
-    <circle
-        id="circle18"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="312"
-        sodipodi:cy="312"
-        cx="390"
-        r="50"
-        sodipodi:cx="390"
-    />
-    <circle
-        id="circle20"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="168"
-        sodipodi:cy="168"
-        cx="390"
-        r="50"
-        sodipodi:cx="390"
-    />
-    <circle
-        id="circle22"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="936"
-        sodipodi:cy="936"
-        cx="110"
-        r="50"
-        sodipodi:cx="110"
-    />
-    <circle
-        id="circle24"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="792"
-        sodipodi:cy="792"
-        cx="110"
-        r="50"
-        sodipodi:cx="110"
-    />
-    <circle
-        id="circle26"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="648"
-        sodipodi:cy="648"
-        cx="110"
-        r="50"
-        sodipodi:cx="110"
-    />
-    <circle
-        id="circle28"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="936"
-        sodipodi:cy="936"
-        cx="390"
-        r="50"
-        sodipodi:cx="390"
-    />
-    <circle
-        id="circle30"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="792"
-        sodipodi:cy="792"
-        cx="390"
-        r="50"
-        sodipodi:cx="390"
-    />
-    <circle
-        id="circle32"
-        sodipodi:rx="50"
-        sodipodi:ry="50"
-        style="fill:#000000"
-        cy="648"
-        sodipodi:cy="648"
-        cx="390"
-        r="50"
-        sodipodi:cx="390"
-    />
-  </g
-  >
-</svg>
-      </div>
-    </div>
-    <div style="position:absolute; top:0; left:33%; width:33%; height:100%;"
-        class="r b">
-      <div style="width:100%; height: 100%">
-        <svg width="100%" height="100%">
-          <circle cx="50%" cy="50%" r="27%"
-            stroke="blue" stroke-width="5%" fill="white" />
-        </svg>
-      </div>
-    </div>
-    <div style="position:absolute; top:0; left:66%; width:33%; height:100%;"
-        class="b">
-      <div style="width:100%; height: 100%">
-      </div>
-    </div>
+  <!-- First row: Area for other player's tiles -->
+  <div class="opponent">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
   </div>
 
-  <!-- Second row: ['', '', ''] -->
-  <div style="position:absolute; top:33%; left:0; width:100%; height:33%;">
-    <div style="position:absolute; top:0; left:0%; width:33%; height:100%;"
-        class="r b">
-      <div style="width:100%; height: 100%">
+  <!-- Second row: Area for game -->
+  <div class="game">
+      <div class="content">
+        <img src="imgs/dominoes/domino-blank.svg" class="verticalTile">
+        <img src="imgs/dominoes/domino-blank.svg" class="horizontalTile">
       </div>
-    </div>
-    <div style="position:absolute; top:0; left:33%; width:33%; height:100%;"
-        class="r b">
-      <div style="width:100%; height: 100%">
-      </div>
-    </div>
-    <div style="position:absolute; top:0; left:66%; width:33%; height:100%;"
-        class="b">
-      <div style="width:100%; height: 100%">
-      </div>
-    </div>
   </div>
 
-  <!-- Third row: ['', '', ''] -->
-  <div style="position:absolute; top:66%; left:0; width:100%; height:33%;">
-    <div style="position:absolute; top:0; left:0%; width:33%; height:100%;"
-        class="r">
-      <div style="width:100%; height: 100%">
-      </div>
-    </div>
-    <div style="position:absolute; top:0; left:33%; width:33%; height:100%;"
-        class="r">
-      <div style="width:100%; height: 100%">
-      </div>
-    </div>
-    <div style="position:absolute; top:0; left:66%; width:33%; height:100%;"
-        class="">
-      <div style="width:100%; height: 100%">
-      </div>
-    </div>
+  <!-- Third row: area for current player's tiles -->
+  <div class="currentPlayer">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
   </div>
+
+  <!-- Right Side: area for house tiles -->
+  <div class="boneyard">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+  </div>
+
 </div>
 
 </body>
