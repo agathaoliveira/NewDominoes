@@ -38,9 +38,13 @@
   width:80%;
   height:80%;
 }
+
 .game .content{
-  width: 100%;
-  text-align: center;
+ width: 100%;
+ text-align: center;
+ position: relative;
+ top: 50%;
+ transform: translateY(-50%);
 }
 
 .game .content .verticalTile{
@@ -49,15 +53,16 @@
 }
 
 .game .content .horizontalTile{
-  width: 5%;
-  height: 100%;
-  /*-ms-transform: rotate(90deg); /* IE 9 */
-  /*-webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
-  /*transform: rotate(90deg);
-  position: relative;
-  left: 10px;*/
-  -webkit-transform: rotate(90deg);
-  -webkit-transform-origin: 63% 60%;
+ width: 5%;
+ height: 100%;
+ /*-ms-transform: rotate(90deg); /* IE 9 */
+ /*-webkit-transform: rotate(90deg); /* Chrome, Safari, Opera */
+ /*transform: rotate(90deg);
+ position: relative;
+ left: 10px;*/
+ -webkit-transform: rotate(90deg);
+ -webkit-transform-origin: 0% 50%;
+ margin: 0 5%;
 }
 
 .boneyard{
