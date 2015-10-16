@@ -3,6 +3,9 @@ var Play;
     Play[Play["LEFT"] = 0] = "LEFT";
     Play[Play["RIGHT"] = 1] = "RIGHT";
     Play[Play["BUY"] = 2] = "BUY";
+    Play[Play["PASS"] = 3] = "PASS";
+    Play[Play["REVEAL"] = 4] = "REVEAL";
+    Play[Play["END"] = 5] = "END";
 })(Play || (Play = {}));
 var gameLogic;
 (function (gameLogic) {
@@ -109,10 +112,6 @@ var gameLogic;
         }
         var board = getInitialBoard();
         operations.push({ setTurn: { turnIndex: 0 } });
-        /*for (var i = 0; i < players.length; i++)
-        {
-          operations.push({set: {key: 'player' + i, value: players[i]}});
-        }*/
         operations.push({ set: { key: 'house', value: house } });
         operations.push({ set: { key: 'board', value: board } });
         operations.push({ shuffle: shuffleKeys });
@@ -127,39 +126,13 @@ var gameLogic;
         }
         return undefined;
     }
-    /*  function hasTileWithNumbers(player: IPlayer, state: IState, firstNumber: number, secondNumber: number): boolean
-      {
-        for (var i = 0; i < player.hand.length; i++){
-          var tile: ITile = state[player.hand[i]];
-          if (tile.leftNumber === firstNumber || tile.rightNumber === secondNumber ||
-            tile.leftNumber === secondNumber || tile.rightNumber === secondNumber){
-            return true;
-          }
+    function getVisibilityForAllPlayers(numOfPlayers) {
+        var visitibilities = [];
+        for (var i = 0; i < numOfPlayers; i++) {
+            visitibilities.push(i);
         }
-        return false;
-      }
-    
-      function isTie(board: IBoard, state: IState, players: IPlayer[], house: IPlayer): boolean{
-    
-        if (!board.root){
-          return false;
-        }
-    
-        var leftTile: ITile = board.leftMost;
-        var rightTile: ITile = board.rightMost;
-    
-        if (hasTileWithNumbers(house, state, leftTile.leftNumber, rightTile.rightNumber)){
-          return false;
-        }
-    
-        for (var i = 0; i < players.length; i++){
-          if (hasTileWithNumbers(players[i], state, leftTile.leftNumber, rightTile.rightNumber)){
-            return false;
-          }
-        }
-    
-        return true;
-      }*/
+        return visitibilities;
+    }
     function getGenericMove(turn, boardAfterMove, delta, visibility, players) {
         var operations = [];
         operations.push({ setTurn: { turnIndex: turn } });
@@ -169,86 +142,114 @@ var gameLogic;
         operations.push({ set: { key: 'players', value: players } });
         return operations;
     }
-    function getMoveIfEndGame(player, boardAfterMove, delta, visibility, numberOfPlayers) {
+    function getRemainingPoints(player, state) {
+        var tile, points = 0;
+        for (var i = 0; i < player.hand.length; i++) {
+            tile = state[player.hand[i]];
+            points = points + tile.leftNumber + tile.rightNumber;
+        }
+        return points;
+    }
+    function createMoveEndGame(allPlayers, state) {
+        var operations = [], remainingPoints = [], numberOfPlayers = allPlayers.length, totalPoints = 0;
+        for (var i = 0; i < numberOfPlayers; i++) {
+            remainingPoints[i] = getRemainingPoints(allPlayers[i], state);
+            totalPoints = totalPoints + remainingPoints[i];
+        }
+        var endScores = [];
+        for (var i = 0; i < numberOfPlayers; i++) {
+            endScores[i] = totalPoints - remainingPoints[i];
+        }
+        operations.push({ endMatch: { endMatchScores: endScores } });
+        return operations;
+    }
+    gameLogic.createMoveEndGame = createMoveEndGame;
+    function createMovePass(turnIndexBeforeMove, numberOfPlayers) {
         var operations = [];
-        if (getWinner(player) !== undefined) {
-            var endScores = [];
-            for (var i = 0; i < numberOfPlayers; i++) {
-                endScores[i] = 0;
-            }
-            endScores[player.id] = 1;
-            operations.push({ endMatch: { endMatchScores: endScores } });
-            operations.push({ set: { key: 'board', value: boardAfterMove } });
-            operations.push({ set: { key: 'delta', value: delta } });
-            operations.push({ setVisibility: visibility });
-            return operations;
-        }
-        else {
-            return undefined;
-        }
+        operations.push({ setTurn: { turnIndex: (turnIndexBeforeMove + 1) % numberOfPlayers } });
+        return operations;
     }
-    function getVisibilityForAllPlayers(numOfPlayers) {
-        var visitibilities = [];
-        for (var i = 0; i < numOfPlayers; i++) {
-            visitibilities.push(i);
+    gameLogic.createMovePass = createMovePass;
+    function createMoveReveal(numberOfPlayers, turnIndexBeforeMove) {
+        var operations = [], playerIndexes = getVisibilityForAllPlayers(numberOfPlayers);
+        for (var i = 0; i < 28; i++) {
+            operations.push({ setVisibility: { key: 'tile' + i, visibleToPlayerIndexes: playerIndexes } });
         }
-        return visitibilities;
+        operations.push({ setTurn: { turnIndex: turnIndexBeforeMove } });
+        return operations;
     }
-    /**
-    * Returns the move that should be performed when player
-    * with index turnIndexBeforeMove makes adds a domino to the board.
+    gameLogic.createMoveReveal = createMoveReveal;
+    /* In this case, the domino tile should be removed from the house and added to the player's hand. It should only be visible to the player
+    * who bought the tile from the house.
     */
-    function createMove(state, turnIndexBeforeMove) {
-        var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove, playedTileKey = state.delta.tileKey, play = state.delta.play, players = state.players, house = state.house, board = state.board;
+    function createMoveBuy(house, playedTileKey, player, allPlayers, board, delta, turnIndexBeforeMove) {
+        var operations, visibility;
+        if (getNumberOfRemainingTiles(house) === 0) {
+            throw new Error("One cannot buy from the house when it has no tiles");
+        }
+        removeTileFromHand(house, playedTileKey);
+        addTileToHand(player, playedTileKey);
+        visibility = { key: playedTileKey, visibleToPlayerIndexes: [turnIndexBeforeMove] };
+        allPlayers[turnIndexBeforeMove] = player;
+        operations = getGenericMove(turnIndexBeforeMove, board, delta, visibility, allPlayers);
+        operations.concat([{ set: { key: 'house', value: house } }]);
+        return operations;
+    }
+    gameLogic.createMoveBuy = createMoveBuy;
+    function createMovePlay(board, delta, playedTile, player, allPlayers, playedTileKey, turnIndexBeforeMove, play) {
+        var operations, visibility, numberOfPlayers = allPlayers.length;
         //Check if someone has already won the game
-        for (var i = 0; i < players.length; i++) {
-            if (getWinner(players[i]) === players[i].id) {
+        for (var i = 0; i < numberOfPlayers; i++) {
+            if (getWinner(allPlayers[i]) === allPlayers[i].id) {
                 throw new Error("Can only make a move if the game is not over! Player " + i + " has already won.");
             }
         }
+        if (!board.root) {
+            setBoardRoot(board, playedTile);
+        }
+        else if (play === Play.RIGHT) {
+            addTileToTheRight(board, playedTile);
+        }
+        else {
+            addTileToTheLeft(board, playedTile);
+        }
+        removeTileFromHand(player, playedTileKey);
+        if (getNumberOfRemainingTiles(player) !== 0) {
+            visibility = { key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(numberOfPlayers) };
+            var nextTurn = (turnIndexBeforeMove + 1) % numberOfPlayers;
+            allPlayers[turnIndexBeforeMove] = player;
+            return getGenericMove(nextTurn, board, delta, visibility, allPlayers);
+        }
+        else {
+            return createMoveReveal(numberOfPlayers, turnIndexBeforeMove);
+        }
+    }
+    gameLogic.createMovePlay = createMovePlay;
+    /**
+    * Returns the move that should be performed when player with index turnIndexBeforeMove makes a move.
+    */
+    function createMove(state, turnIndexBeforeMove) {
+        var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove, playedTileKey = !(state.delta) ? undefined : state.delta.tileKey, play = state.delta.play, players = state.players, house = state.house, board = state.board;
         boardAfterMove = angular.copy(board);
         playersAfterMove = angular.copy(players);
         playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
         houseAfterMove = angular.copy(house);
         var delta = { tileKey: playedTileKey, play: play };
         //If there was no tile on the board before, this is the first tile
-        if (!board.root) {
-            setBoardRoot(boardAfterMove, state[playedTileKey]);
-            removeTileFromHand(playerAfterMove, playedTileKey);
-            visibility = { key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length) };
-            var nextTurn = (turnIndexBeforeMove + 1) % players.length;
-            playersAfterMove[turnIndexBeforeMove] = playerAfterMove;
-            return getGenericMove(nextTurn, boardAfterMove, delta, visibility, playersAfterMove);
-        }
-        else if (Play.LEFT === play) {
-            addTileToTheLeft(boardAfterMove, state[playedTileKey]);
-            removeTileFromHand(playerAfterMove, playedTileKey);
-            visibility = { key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length) };
-            var endMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility, players.length);
-            var nextTurn = (turnIndexBeforeMove + 1) % players.length;
-            playersAfterMove[turnIndexBeforeMove] = playerAfterMove;
-            return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, playersAfterMove);
-        }
-        else if (Play.RIGHT === play) {
-            addTileToTheRight(boardAfterMove, state[playedTileKey]);
-            removeTileFromHand(playerAfterMove, playedTileKey);
-            visibility = { key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(players.length) };
-            var endMove = getMoveIfEndGame(playerAfterMove, boardAfterMove, delta, visibility, players.length);
-            var nextTurn = (turnIndexBeforeMove + 1) % players.length;
-            playersAfterMove[turnIndexBeforeMove] = playerAfterMove;
-            return endMove ? endMove : getGenericMove(nextTurn, boardAfterMove, delta, visibility, playersAfterMove);
+        if (Play.LEFT === play || Play.RIGHT === play) {
+            return createMovePlay(board, delta, state[playedTileKey], playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play);
         }
         else if (Play.BUY === play) {
-            if (getNumberOfRemainingTiles(house) === 0) {
-                throw new Error("One cannot buy from the house when it has no tiles");
-            }
-            removeTileFromHand(houseAfterMove, playedTileKey);
-            addTileToHand(playerAfterMove, playedTileKey);
-            visibility = { key: playedTileKey, visibleToPlayerIndexes: [turnIndexBeforeMove] };
-            playersAfterMove[turnIndexBeforeMove] = playerAfterMove;
-            operations = getGenericMove(turnIndexBeforeMove, boardAfterMove, delta, visibility, playersAfterMove);
-            operations.concat([{ set: { key: 'house', value: houseAfterMove } }]);
-            return operations;
+            return createMoveBuy(houseAfterMove, playedTileKey, playerAfterMove, playersAfterMove, boardAfterMove, delta, turnIndexBeforeMove);
+        }
+        else if (Play.PASS == play) {
+            return createMovePass(turnIndexBeforeMove, playersAfterMove.length);
+        }
+        else if (Play.REVEAL === play) {
+            return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove);
+        }
+        else if (Play.END === play) {
+            return createMoveEndGame(playersAfterMove, state);
         }
         else {
             throw new Error("Unknown play");
@@ -299,9 +300,9 @@ var gameLogic;
             else {
                 expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove);
             }
-            /*  console.log(JSON.stringify(move));*/
-            //  console.log("---------------------")
-            //    console.log(JSON.stringify(expectedMove));
+            // console.log(JSON.stringify(move));
+            // console.log("---------------------")
+            // console.log(JSON.stringify(expectedMove));
             if (!angular.equals(move, expectedMove)) {
                 //  logDiffToConsole(move, expectedMove);
                 return false;

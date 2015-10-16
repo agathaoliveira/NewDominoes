@@ -15,6 +15,7 @@ module aiService {
 
     var board: IBoard = stateBeforeMove.board;
     var hand: string[] = stateBeforeMove.players[playerIndex].hand;
+    var numberOfHouseTiles: number = !(stateBeforeMove.house) ? 0 : stateBeforeMove.house.hand.length;
 
     var key: string = undefined;
     var play: Play = undefined;
@@ -26,24 +27,37 @@ module aiService {
       }
       else
       {
-        play = hasNumbers(stateBeforeMove[hand[i]], board.leftMost.leftNumber, board.rightMost.rightNumber);
+        play = getPlayBasedOnBoardTiles(stateBeforeMove[hand[i]], board.leftMost.leftNumber, board.rightMost.rightNumber);
       }
-      if (play)
+
+      if (play !== undefined)
       {
         key = hand[i];
         break;
       }
     }
 
-    var delta: BoardDelta = key === undefined ? { tileKey: stateBeforeMove.house.hand[0], play: Play.BUY } : { tileKey: key, play: play }
-    stateBeforeMove.delta = delta;
+    if (play === undefined)
+    {
+      if (numberOfHouseTiles != 0)
+      {
+        play = Play.BUY
+        key = stateBeforeMove.house.hand[0];
+      }
+      else
+      {
+        play = Play.PASS;
+      }
+    }
 
+    var delta: BoardDelta = play !== Play.PASS ? { tileKey: key, play: play } : { play: play };
+    stateBeforeMove.delta = delta;
     var move: IMove = gameLogic.createMove(stateBeforeMove, playerIndex);
 
     return move;
   }
 
-  function hasNumbers(tile: ITile, leftNumber: number, rightNumber: number): Play
+  function getPlayBasedOnBoardTiles(tile: ITile, leftNumber: number, rightNumber: number): Play
   {
     if (tile.leftNumber === leftNumber || tile.rightNumber === leftNumber)
     {
@@ -53,7 +67,8 @@ module aiService {
     {
       return Play.RIGHT;
     }
-      return undefined;
+
+    return undefined;
   }
 
 }
