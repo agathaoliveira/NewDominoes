@@ -22,48 +22,61 @@
 <div id="gameArea">
   <!-- First row: Area for other player's tiles -->
   <div class="opponent">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
+    <img src="imgs/player/image1.svg" class="opponentIcon">
+    <img src="imgs/dominoes/domino-blank.svg" class="opponentTile">
+    <img src="imgs/dominoes/domino-blank.svg" class="opponentTile">
+    <img src="imgs/dominoes/domino-blank.svg" class="opponentTile">
   </div>
 
   <!-- Second row: Area for game -->
   <div class="game">
-      <div class="content">
-        <img src="imgs/dominoes/domino-1-1.svg" class="verticalTile">
-        <img src="imgs/dominoes/domino-0-1.svg" class="horizontalTile">
-        <img src="imgs/dominoes/domino-1-1.svg" class="verticalTile">
-        <img src="imgs/dominoes/domino-0-1.svg" class="horizontalTile">
-        <img src="imgs/dominoes/domino-0-1.svg" class="horizontalTile">
-        <img src="imgs/dominoes/domino-0-1.svg" class="horizontalTile">
-        <img src="imgs/dominoes/domino-0-1.svg" class="horizontalTile">
-        <img src="imgs/dominoes/domino-1-1.svg" class="verticalTile">
+      <div class="tree0Root">
+        <img src="imgs/dominoes/domino-1-1.svg" class="rootTile">
+      </div>
+      <div class="tree0Right">
+        <img src="imgs/dominoes/domino-1-4.svg" class="horizontalTileFlip">
+        <img src="imgs/dominoes/domino-4-4.svg" class="verticalTile">
+        <img src="imgs/dominoes/domino-0-4.svg" class="horizontalTile">
+      </div>
+      <div class="tree0Left">
+        <!-- Max: 10 points. Horizontal tile is two points, vertical is one point -->
+        <img src="imgs/dominoes/domino-2-2.svg" class="horizontalTile">
+        <img src="imgs/dominoes/domino-2-6.svg" class="horizontalTileFlip">
+        <img src="imgs/dominoes/domino-4-6.svg" class="horizontalTile">
+        <img src="imgs/dominoes/domino-4-5.svg" class="horizontalTileFlip">
+        <img src="imgs/dominoes/domino-5-6.svg" class="horizontalTileFlip">
+        <img src="imgs/dominoes/domino-1-6.svg" class="horizontalTile">
+
+      </div>
+      <div class="tree1">
+        <img src="imgs/dominoes/domino-0-1.svg" class="tree1Tile">
+        <img src="imgs/dominoes/domino-1-2.svg" class="tree1Tile">
+      </div>
+      <div class="tree3">
+        <!-- <img src="imgs/dominoes/domino-0-1.svg" class="verticalTile"> -->
+      </div>
+      <div class="tree2">
+          <img src="imgs/dominoes/domino-1-5.svg" class="tree2TileFlip">
+          <img src="imgs/dominoes/domino-3-5.svg" class="tree2Tile">
+          <img src="imgs/dominoes/domino-3-4.svg" class="tree2TileFlip">
+          <img src="imgs/dominoes/domino-2-4.svg" class="tree2Tile">
+          <img src="imgs/dominoes/domino-2-3.svg" class="tree2TileFlip">
+          <img src="imgs/dominoes/domino-3-6.svg" class="tree2TileFlip">
+          <img src="imgs/dominoes/domino-2-6.svg" class="tree2Tile">
+      </div>
+      <div class="tree4">
       </div>
   </div>
 
   <!-- Third row: area for current player's tiles -->
   <div class="currentPlayer">
-    <img src="imgs/dominoes/domino-1-2.svg" class="tile">
-    <img src="imgs/dominoes/domino-4-5.svg" class="tile">
-    <img src="imgs/dominoes/domino-6-6.svg" class="tile">
-    <img src="imgs/dominoes/domino-3-4.svg" class="tile">
-    <img src="imgs/dominoes/domino-2-2.svg" class="tile">
+    <img src="imgs/player/image2.svg" class="currentPlayerIcon">
+    <img src="imgs/dominoes/domino-0-3.svg" class="currentPlayerTile">
+    <img src="imgs/dominoes/domino-0-6.svg" class="currentPlayerTile">
   </div>
 
   <!-- Right Side: area for house tiles -->
   <div class="boneyard">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
-    <img src="imgs/dominoes/domino-blank.svg" class="tile">
     <img src="imgs/dominoes/domino-blank.svg" class="tile">
     <img src="imgs/dominoes/domino-blank.svg" class="tile">
     <img src="imgs/dominoes/domino-blank.svg" class="tile">
