@@ -270,6 +270,21 @@ var gameLogic;
         logDiffToConsole(o1[k], o2[k]);
       }
     }*/
+    function hasTileWithNumbers(state, turnIndex, firstNumber, secondNumber) {
+        var player = state.players[turnIndex];
+        for (var i = 0; i < player.hand.length; i++) {
+            var tile = state[player.hand[i]];
+            if ((tile.leftNumber === firstNumber && tile.rightNumber === secondNumber) || (tile.rightNumber === firstNumber && tile.leftNumber === secondNumber)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    gameLogic.hasTileWithNumbers = hasTileWithNumbers;
+    function canStartGame(state, turnIndex, value) {
+        return hasTileWithNumbers(state, turnIndex, value, value);
+    }
+    gameLogic.canStartGame = canStartGame;
     /**
        * Check if the move is OK.
        *

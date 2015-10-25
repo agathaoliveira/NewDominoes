@@ -432,6 +432,25 @@ module gameLogic {
   }
 }*/
 
+export function hasTileWithNumbers(state: IState, turnIndex: number, firstNumber: number, secondNumber: number): boolean
+{
+  var player: IPlayer = state.players[turnIndex];
+  for (var i = 0; i < player.hand.length; i++)
+  {
+    var tile: ITile = state[player.hand[i]];
+    if ((tile.leftNumber === firstNumber && tile.rightNumber === secondNumber) || (tile.rightNumber === firstNumber && tile.leftNumber === secondNumber))
+    {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function canStartGame(state: IState, turnIndex: number, value: number): boolean {
+  return hasTileWithNumbers(state, turnIndex, value, value);
+}
+
 
 /**
    * Check if the move is OK.
@@ -443,7 +462,7 @@ module gameLogic {
    */
   export function isMoveOk(params: IIsMoveOk): boolean {
     var move = params.move;
-    var turnIndexBeforeMove = params.turnIndexBeforeMove;
+    var turnIndexBeforeMove: number = params.turnIndexBeforeMove;
     var stateBeforeMove: IState = params.stateBeforeMove;
     var numberOfPlayers: number = params.numberOfPlayers;
 
