@@ -44,13 +44,16 @@ var game;
     function updateUI(params) {
         animationEnded = false;
         state = params.stateAfterMove;
-        if (!state.board) {
+        $rootScope.state = state;
+        if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
             var move = gameLogic.getInitialMove(params.numberOfPlayers);
             gameService.makeMove(move);
         }
         canMakeMove = params.turnIndexAfterMove >= 0 &&
             params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
         turnIndex = params.turnIndexAfterMove;
+        $rootScope.yourPlayerIndex = params.yourPlayerIndex;
+        $rootScope.turnIndex = params.turnIndexAfterMove;
         // Is it the computer's turn?
         isComputerTurn = canMakeMove &&
             params.playersInfo[params.yourPlayerIndex].playerId === '';
@@ -68,7 +71,7 @@ var game;
             }
         }
     }
-    function treeClicked(treeId) {
+    function placeTileOnTree(treeId) {
         log.info(["Tried to make play for tree:", treeId]);
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
@@ -88,7 +91,7 @@ var game;
             return;
         }
     }
-    game.treeClicked = treeClicked;
+    game.placeTileOnTree = placeTileOnTree;
     function getTileImageSourceForPlayer(playerId, tileId) {
         if (!state.players[playerId].hand) {
             return constructImageUrl(undefined);
@@ -126,6 +129,14 @@ var game;
         return !(tile === undefined);
     }
     game.shouldShowImage = shouldShowImage;
+    function registerSelectedPlayerTile(tileIndex) {
+        $rootScope.tile = state.players[$rootScope.yourPlayerIndex].hand[tileIndex];
+    }
+    game.registerSelectedPlayerTile = registerSelectedPlayerTile;
+    function registerSelectedHouseTile(tileIndex) {
+        $rootScope.tile = state.house.hand[tileIndex];
+    }
+    game.registerSelectedHouseTile = registerSelectedHouseTile;
     /*Get image source for tile at the indicated level on right or left tree*/
     function getImageSource(tileLevel, tree) {
         var board = state.board;
@@ -168,42 +179,42 @@ var game;
             state.delta.row === row && state.delta.col === col;
     }
     game.shouldSlowlyAppear = shouldSlowlyAppear;
-    function handleDragEvent(type, clientX, clientY) {
-        if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
-            draggingLines.style.display = "none";
-            myDrag.style.display = "none";
-            return;
-        }
-        var pos = getDraggingTilePosition(clientX, clientY);
-        if (type === "touchstart") {
-            dragStartHandler(pos);
-        }
-        if (!dragFrom) {
-            // end dragging if not a valid drag start
-            return;
-        }
-        if (type === "touchend") {
-            dragEndHandler(pos);
-        }
-        else {
-            // drag continues
-            dragContinueHandler(pos);
-        }
-        if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
-            draggingLines.style.display = "none";
-            myDrag.style.display = "none";
-            dragFrom = null;
-        }
-    }
-})(game || (game = {}));
-angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
-    .run(function () {
-    $rootScope['game'] = game;
-    translate.setLanguage('en', {
-        RULES_OF_TICTACTOE: "Rules of Dominoes",
-        RULES_SLIDE1: "You and your opponent take turns to mark the grid in an empty spot. The first mark is X, then O, then X, then O, etc.",
-        RULES_SLIDE2: "The first to mark a whole row, column or diagonal wins.",
-        CLOSE: "Close"
+    //   function handleDragEvent(type, clientX, clientY) {
+    //       if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
+    //           draggingLines.style.display = "none";
+    //           myDrag.style.display = "none";
+    //           return;
+    //       }
+    //       var pos = getDraggingTilePosition(clientX, clientY);
+    //       if (type === "touchstart" ) {
+    //           dragStartHandler(pos);
+    //       }
+    //       if (!dragFrom) {
+    //           // end dragging if not a valid drag start
+    //           return;
+    //       }
+    //       if (type === "touchend") {
+    //           dragEndHandler(pos);
+    //       } else {
+    //           // drag continues
+    //           dragContinueHandler(pos);
+    //       }
+    //       if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
+    //           draggingLines.style.display = "none";
+    //           myDrag.style.display = "none";
+    //           dragFrom = null;
+    //       }
+    //   }
+    // }
+    angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
+        .run(function () {
+        $rootScope['game'] = game;
+        translate.setLanguage('en', {
+            RULES_OF_TICTACTOE: "Rules of Dominoes",
+            RULES_SLIDE1: "You and your opponent take turns to mark the grid in an empty spot. The first mark is X, then O, then X, then O, etc.",
+            RULES_SLIDE2: "The first to mark a whole row, column or diagonal wins.",
+            CLOSE: "Close"
+        });
+        game.init();
     });
-    game.init();
-});
+})(game || (game = {}));

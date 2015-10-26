@@ -48,14 +48,18 @@ module game {
   function updateUI(params: IUpdateUI): void {
     animationEnded = false;
     state = params.stateAfterMove;
+    $rootScope.state = state;
 
-    if (!state.board) {
+    if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
       let move = gameLogic.getInitialMove(params.numberOfPlayers);
       gameService.makeMove(move);
     }
     canMakeMove = params.turnIndexAfterMove >= 0 && // game is ongoing
       params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
     turnIndex = params.turnIndexAfterMove;
+
+    $rootScope.yourPlayerIndex = params.yourPlayerIndex;
+    $rootScope.turnIndex = params.turnIndexAfterMove;
 
     // Is it the computer's turn?
     isComputerTurn = canMakeMove &&
@@ -75,7 +79,7 @@ module game {
     }
   }
 
-  export function treeClicked(treeId: number): void {
+  export function placeTileOnTree(treeId: number): void {
     log.info(["Tried to make play for tree:", treeId]);
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
@@ -138,6 +142,16 @@ module game {
     return !(tile === undefined)
   }
 
+  export function registerSelectedPlayerTile(tileIndex: number)
+  {
+    $rootScope.tile = state.players[$rootScope.yourPlayerIndex].hand[tileIndex];
+  }
+
+  export function registerSelectedHouseTile(tileIndex: number)
+  {
+    $rootScope.tile = state.house.hand[tileIndex];
+  }
+
   /*Get image source for tile at the indicated level on right or left tree*/
   export function getImageSource(tileLevel: number, tree: string): string {
     let board = state.board;
@@ -188,33 +202,33 @@ module game {
         state.delta.row === row && state.delta.col === col;
   }
 
-  function handleDragEvent(type, clientX, clientY) {
-      if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
-          draggingLines.style.display = "none";
-          myDrag.style.display = "none";
-          return;
-      }
-      var pos = getDraggingTilePosition(clientX, clientY);
-      if (type === "touchstart" ) {
-          dragStartHandler(pos);
-      }
-      if (!dragFrom) {
-          // end dragging if not a valid drag start
-          return;
-      }
-      if (type === "touchend") {
-          dragEndHandler(pos);
-      } else {
-          // drag continues
-          dragContinueHandler(pos);
-      }
-      if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
-          draggingLines.style.display = "none";
-          myDrag.style.display = "none";
-          dragFrom = null;
-      }
-  }
-}
+//   function handleDragEvent(type, clientX, clientY) {
+//       if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
+//           draggingLines.style.display = "none";
+//           myDrag.style.display = "none";
+//           return;
+//       }
+//       var pos = getDraggingTilePosition(clientX, clientY);
+//       if (type === "touchstart" ) {
+//           dragStartHandler(pos);
+//       }
+//       if (!dragFrom) {
+//           // end dragging if not a valid drag start
+//           return;
+//       }
+//       if (type === "touchend") {
+//           dragEndHandler(pos);
+//       } else {
+//           // drag continues
+//           dragContinueHandler(pos);
+//       }
+//       if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
+//           draggingLines.style.display = "none";
+//           myDrag.style.display = "none";
+//           dragFrom = null;
+//       }
+//   }
+// }
 
 angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
   .run(function () {
