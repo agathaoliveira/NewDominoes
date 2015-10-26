@@ -481,7 +481,7 @@ export function canStartGame(state: IState, turnIndex: number, value: number): b
 
       var expectedMove: IMove;
 
-      if (!params.stateBeforeMove)
+      if (!params.stateBeforeMove || !params.stateBeforeMove.board)
       {
         expectedMove = getInitialMove(numberOfPlayers);
       }

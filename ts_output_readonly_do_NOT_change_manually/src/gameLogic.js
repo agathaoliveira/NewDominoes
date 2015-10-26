@@ -309,7 +309,7 @@ var gameLogic;
                 throw Error("A maximum of 4 players are allowed for this game");
             }
             var expectedMove;
-            if (!params.stateBeforeMove) {
+            if (!params.stateBeforeMove || !params.stateBeforeMove.board) {
                 expectedMove = getInitialMove(numberOfPlayers);
             }
             else {
