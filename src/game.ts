@@ -106,14 +106,37 @@ module game {
     return constructImageUrl(state[state.players[playerId].hand[tileId]]);
   }
 
-  export function getNumberOfTilesForPlayer(playerId: number): number
+  export function getNumberOfTilesForPlayer(playerId: number): number[]
   {
-    return !state.players[turnIndex].hand ? 0 : state.players[turnIndex].hand.length;
+    if (!state.players[turnIndex] || !state.players[turnIndex].hand)
+    {
+      return [];
+    }
+
+    return getArrayUpToNumber(state.players[turnIndex].hand.length);
+
   }
 
   export function getNumberOfTilesForBoneYard(): number
   {
-    return !state.house ? 0 : state.house.hand.length;
+    if (!state.house || !state.house.hand)
+    {
+      return [];
+    }
+
+    return getArrayUpToNumber(state.house.hand.length);
+  }
+
+  function getArrayUpToNumber(maxNumber: number): number[]
+  {
+
+    var result: number[] = [];
+    for (var i = 0; i < maxNumber; i++)
+    {
+      result.push(i);
+    }
+
+    return result;
   }
 
   /* Decide if tile with this numebr should be shown. The tree parameter defines
@@ -126,7 +149,7 @@ module game {
     {
       return false;
     }
-    
+
     //Root tile
     if (tree === 0)
     {

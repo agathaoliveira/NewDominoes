@@ -100,13 +100,26 @@ var game;
     }
     game.getTileImageSourceForPlayer = getTileImageSourceForPlayer;
     function getNumberOfTilesForPlayer(playerId) {
-        return !state.players[turnIndex].hand ? 0 : state.players[turnIndex].hand.length;
+        if (!state.players[turnIndex] || !state.players[turnIndex].hand) {
+            return [];
+        }
+        return getArrayUpToNumber(state.players[turnIndex].hand.length);
     }
     game.getNumberOfTilesForPlayer = getNumberOfTilesForPlayer;
     function getNumberOfTilesForBoneYard() {
-        return !state.house ? 0 : state.house.hand.length;
+        if (!state.house || !state.house.hand) {
+            return [];
+        }
+        return getArrayUpToNumber(state.house.hand.length);
     }
     game.getNumberOfTilesForBoneYard = getNumberOfTilesForBoneYard;
+    function getArrayUpToNumber(maxNumber) {
+        var result = [];
+        for (var i = 0; i < maxNumber; i++) {
+            result.push(i);
+        }
+        return result;
+    }
     /* Decide if tile with this numebr should be shown. The tree parameter defines
     * if we are going left or right
     */
