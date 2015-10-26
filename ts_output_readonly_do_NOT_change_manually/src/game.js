@@ -112,6 +112,9 @@ var game;
     */
     function shouldShowImage(tileLevel, tree) {
         var board = state.board;
+        if (!board) {
+            return false;
+        }
         //Root tile
         if (tree === 0) {
             if (tileLevel != 0) {

@@ -122,6 +122,11 @@ module game {
   export function shouldShowImage(tileLevel: number, tree: number): boolean {
     let board = state.board;
 
+    if (!board)
+    {
+      return false;
+    }
+    
     //Root tile
     if (tree === 0)
     {
