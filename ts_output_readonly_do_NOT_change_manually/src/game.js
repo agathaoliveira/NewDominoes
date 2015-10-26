@@ -5,7 +5,15 @@ var game;
     var isComputerTurn = false;
     var state = null;
     var turnIndex = null;
+    var treeSources = [];
+    var gameArea = document.getElementById("gameArea");
+    var currentPlayerArea = document.getElementById("currentPlayer");
+    var isUndefinedOrNull = function (val) {
+        return angular.isUndefined(val) || val === null;
+    };
     game.isHelpModalShown = false;
+    var dndStartPos = null;
+    var dndElem = null;
     function init() {
         console.log("Translation of 'RULES_OF_TICTACTOE' is " + translate('RULES_OF_TICTACTOE'));
         resizeGameAreaService.setWidthToHeight(2);
@@ -81,6 +89,21 @@ var game;
         }
     }
     game.treeClicked = treeClicked;
+    function getTileImageSourceForPlayer(playerId, tileId) {
+        if (!state.players[playerId].hand) {
+            return constructImageUrl(undefined);
+        }
+        return constructImageUrl(state[state.players[playerId].hand[tileId]]);
+    }
+    game.getTileImageSourceForPlayer = getTileImageSourceForPlayer;
+    function getNumberOfTilesForPlayer(playerId) {
+        return !state.players[turnIndex].hand ? 0 : state.players[turnIndex].hand.length;
+    }
+    game.getNumberOfTilesForPlayer = getNumberOfTilesForPlayer;
+    function getNumberOfTilesForBoneYard() {
+        return !state.house ? 0 : state.house.hand.length;
+    }
+    game.getNumberOfTilesForBoneYard = getNumberOfTilesForBoneYard;
     /* Decide if tile with this numebr should be shown. The tree parameter defines
     * if we are going left or right
     */
@@ -103,24 +126,31 @@ var game;
         return !(tile === undefined);
     }
     game.shouldShowImage = shouldShowImage;
-    /*Get image source for tile at the indicated level*/
-    function getImageSource(tileNumber, tree) {
+    /*Get image source for tile at the indicated level on right or left tree*/
+    function getImageSource(tileLevel, tree) {
         var board = state.board;
+        if (!treeSources[tree][tileLevel]) {
+            return treeSources[tree][tileLevel];
+        }
         //Root tile
-        if (tree === 0) {
-            if (tileNumber != 0) {
+        if (tree === '0') {
+            if (tileLevel != 0) {
                 return;
             }
-            return constructImageUrl(board.root);
+            var image = constructImageUrl(board.root);
+            treeSources[tree][tileLevel] = image;
+            return image;
         }
         //Check if tile at level (i) exists for right or left tree
         var i = 1;
-        var tile = tree === 1 ? board.root.rightTile : board.root.leftTile;
-        while (i !== tileNumber || tile !== undefined) {
+        var tile = tree === '1' ? board.root.rightTile : board.root.leftTile;
+        while (i !== tileLevel && tile !== undefined) {
             i++;
-            tile = tree === 1 ? tile.rightTile : tile.leftTile;
+            tile = tree === '1' ? tile.rightTile : tile.leftTile;
         }
-        return constructImageUrl(tile);
+        var image = constructImageUrl(tile);
+        treeSources[tree][tileLevel] = image;
+        return image;
     }
     game.getImageSource = getImageSource;
     /*If tile exists, return the real tile. Otherwise, return blank tile.
@@ -138,15 +168,42 @@ var game;
             state.delta.row === row && state.delta.col === col;
     }
     game.shouldSlowlyAppear = shouldSlowlyAppear;
+    function handleDragEvent(type, clientX, clientY) {
+        if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
+            draggingLines.style.display = "none";
+            myDrag.style.display = "none";
+            return;
+        }
+        var pos = getDraggingTilePosition(clientX, clientY);
+        if (type === "touchstart") {
+            dragStartHandler(pos);
+        }
+        if (!dragFrom) {
+            // end dragging if not a valid drag start
+            return;
+        }
+        if (type === "touchend") {
+            dragEndHandler(pos);
+        }
+        else {
+            // drag continues
+            dragContinueHandler(pos);
+        }
+        if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
+            draggingLines.style.display = "none";
+            myDrag.style.display = "none";
+            dragFrom = null;
+        }
+    }
 })(game || (game = {}));
-angular.module('myApp', ['ngTouch', 'ui.bootstrap'])
-    .run(['initGameServices', function (initGameServices) {
-        $rootScope['game'] = game;
-        translate.setLanguage('en', {
-            RULES_OF_TICTACTOE: "Rules of Dominoes",
-            RULES_SLIDE1: "You and your opponent take turns to mark the grid in an empty spot. The first mark is X, then O, then X, then O, etc.",
-            RULES_SLIDE2: "The first to mark a whole row, column or diagonal wins.",
-            CLOSE: "Close"
-        });
-        game.init();
-    }]);
+angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
+    .run(function () {
+    $rootScope['game'] = game;
+    translate.setLanguage('en', {
+        RULES_OF_TICTACTOE: "Rules of Dominoes",
+        RULES_SLIDE1: "You and your opponent take turns to mark the grid in an empty spot. The first mark is X, then O, then X, then O, etc.",
+        RULES_SLIDE2: "The first to mark a whole row, column or diagonal wins.",
+        CLOSE: "Close"
+    });
+    game.init();
+});

@@ -4,7 +4,15 @@ module game {
   let isComputerTurn = false;
   let state: IState = null;
   let turnIndex: number = null;
+  let treeSources: string[][] = [];
+  let gameArea = document.getElementById("gameArea");
+  let currentPlayerArea = document.getElementById("currentPlayer");
+  var isUndefinedOrNull = function (val) {
+          return angular.isUndefined(val) || val === null;
+        };
   export let isHelpModalShown: boolean = false;
+  var dndStartPos = null;
+        var dndElem = null;
 
   export function init() {
     console.log("Translation of 'RULES_OF_TICTACTOE' is " + translate('RULES_OF_TICTACTOE'));
@@ -87,6 +95,23 @@ module game {
     }
   }
 
+  export function getTileImageSourceForPlayer(playerId: number, tileId: number): string
+  {
+    if (!state.players[playerId].hand) { return constructImageUrl(undefined); }
+
+    return constructImageUrl(state[state.players[playerId].hand[tileId]]);
+  }
+
+  export function getNumberOfTilesForPlayer(playerId: number): number
+  {
+    return !state.players[turnIndex].hand ? 0 : state.players[turnIndex].hand.length;
+  }
+
+  export function getNumberOfTilesForBoneYard(): number
+  {
+    return !state.house ? 0 : state.house.hand.length;
+  }
+
   /* Decide if tile with this numebr should be shown. The tree parameter defines
   * if we are going left or right
   */
@@ -113,28 +138,37 @@ module game {
     return !(tile === undefined)
   }
 
-  /*Get image source for tile at the indicated level*/
-  export function getImageSource(tileNumber: number, tree: number): string {
+  /*Get image source for tile at the indicated level on right or left tree*/
+  export function getImageSource(tileLevel: number, tree: string): string {
     let board = state.board;
 
-    //Root tile
-    if (tree === 0)
+    if (!treeSources[tree][tileLevel])
     {
-      if (tileNumber != 0) { return; }
-      return constructImageUrl(board.root);
+      return treeSources[tree][tileLevel];
+    }
+
+    //Root tile
+    if (tree === '0')
+    {
+      if (tileLevel != 0) { return; }
+      var image: string = constructImageUrl(board.root);
+      treeSources[tree][tileLevel] = image;
+      return image;
     }
 
     //Check if tile at level (i) exists for right or left tree
     var i = 1;
-    var tile: ITile = tree === 1 ? board.root.rightTile : board.root.leftTile;
+    var tile: ITile = tree === '1' ? board.root.rightTile : board.root.leftTile;
 
-    while (i !== tileNumber || tile !== undefined)
+    while (i !== tileLevel && tile !== undefined)
     {
       i++;
-      tile = tree === 1 ? tile.rightTile : tile.leftTile;
+      tile = tree === '1' ? tile.rightTile : tile.leftTile;
     }
 
-    return constructImageUrl(tile);
+    var image: string = constructImageUrl(tile);
+    treeSources[tree][tileLevel] = image;
+    return image;
   }
 
   /*If tile exists, return the real tile. Otherwise, return blank tile.
@@ -153,10 +187,37 @@ module game {
         state.delta &&
         state.delta.row === row && state.delta.col === col;
   }
+
+  function handleDragEvent(type, clientX, clientY) {
+      if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
+          draggingLines.style.display = "none";
+          myDrag.style.display = "none";
+          return;
+      }
+      var pos = getDraggingTilePosition(clientX, clientY);
+      if (type === "touchstart" ) {
+          dragStartHandler(pos);
+      }
+      if (!dragFrom) {
+          // end dragging if not a valid drag start
+          return;
+      }
+      if (type === "touchend") {
+          dragEndHandler(pos);
+      } else {
+          // drag continues
+          dragContinueHandler(pos);
+      }
+      if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
+          draggingLines.style.display = "none";
+          myDrag.style.display = "none";
+          dragFrom = null;
+      }
+  }
 }
 
-angular.module('myApp', ['ngTouch', 'ui.bootstrap'])
-  .run(['initGameServices', function (initGameServices: any) {
+angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
+  .run(function () {
   $rootScope['game'] = game;
   translate.setLanguage('en',  {
     RULES_OF_TICTACTOE: "Rules of Dominoes",
@@ -165,4 +226,4 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap'])
     CLOSE: "Close"
   });
   game.init();
-}]);
+});
