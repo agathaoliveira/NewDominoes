@@ -378,7 +378,7 @@ module gameLogic {
     playerAfterMove: IPlayer,
     houseAfterMove: IPlayer,
     playedTileKey: string = !(state.delta) ? undefined : state.delta.tileKey,
-    play: Play = state.delta.play,
+    play: Play = state.delta === undefined ? undefined : state.delta.play,
     players: IPlayer[] = state.players,
     house: IPlayer = state.house,
     board: IBoard = state.board;
@@ -473,6 +473,7 @@ export function canStartGame(state: IState, turnIndex: number, value: number): b
     *    one or more dominoes.
     ********************************************************************/
 
+    console.error("isMoveOk(): Calling is move ok. State is " + JSON.stringify(stateBeforeMove));
     try {
       if (numberOfPlayers > 4)
       {
@@ -490,9 +491,9 @@ export function canStartGame(state: IState, turnIndex: number, value: number): b
         expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove);
       }
 
-       console.log("ACTUAL: " + JSON.stringify(move));
-       console.log("---------------------")
-       console.log("EXPECTED: " + JSON.stringify(expectedMove));
+      //  console.log("ACTUAL: " + JSON.stringify(move));
+      //  console.log("---------------------")
+      //  console.log("EXPECTED: " + JSON.stringify(expectedMove));
 
       if (!angular.equals(move, expectedMove)) {
       //  logDiffToConsole(move, expectedMove);

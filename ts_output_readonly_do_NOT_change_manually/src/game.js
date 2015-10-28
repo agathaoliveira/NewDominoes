@@ -8,6 +8,8 @@ var game;
     var treeSources = [];
     var gameArea = document.getElementById("gameArea");
     var currentPlayerArea = document.getElementById("currentPlayer");
+    var treeNumberOfTiles = [0, 0, 0]; //Store the number of tiles on the tree
+    var treeMaxNumberOfTiles = [1, 6, 6]; //Max number of tiles for a tree
     var isUndefinedOrNull = function (val) {
         return angular.isUndefined(val) || val === null;
     };
@@ -39,14 +41,17 @@ var game;
         });
     }
     function sendComputerMove() {
+        console.error("sendComputerMove(): Special Error: Calling make move for computer move");
         gameService.makeMove(aiService.createComputerMove(turnIndex, state));
     }
     function updateUI(params) {
         animationEnded = false;
         state = params.stateAfterMove;
         $rootScope.state = state;
+        console.error("updateUI(): updating UI. State is: " + JSON.stringify(state));
         if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
             var move = gameLogic.getInitialMove(params.numberOfPlayers);
+            console.error("updateUI(): make initial move");
             gameService.makeMove(move);
         }
         canMakeMove = params.turnIndexAfterMove >= 0 &&
@@ -81,9 +86,10 @@ var game;
         }
         try {
             state.delta.play = (treeId === 0 || treeId === 1) ? Play.RIGHT : Play.LEFT;
-            state.delta.tileKey = "tile0"; //TODO: SET THIS BASED ON WHICH TILE WAS DRAGGED TO THIS CELL
+            state.delta.tileKey = $rootScope.selectedTile;
             var move = gameLogic.createMove(state, turnIndex);
             canMakeMove = false; // to prevent making another move
+            console.error("placeTileOnTree(): Making move to place tile on tree. State is " + JSON.stringify(state));
             gameService.makeMove(move);
         }
         catch (e) {
@@ -100,12 +106,54 @@ var game;
     }
     game.getTileImageSourceForPlayer = getTileImageSourceForPlayer;
     function getNumberOfTilesForPlayer(playerId) {
-        if (!state.players[turnIndex] || !state.players[turnIndex].hand) {
+        if (!state.players || !state.players[turnIndex] || !state.players[turnIndex].hand) {
             return [];
         }
         return getArrayUpToNumber(state.players[turnIndex].hand.length);
     }
     game.getNumberOfTilesForPlayer = getNumberOfTilesForPlayer;
+    /* Get number of players but exclude current player
+    */
+    function getNumberOfPlayers() {
+        if (!state || !state.players) {
+            return 1;
+        }
+        return state.players.length - 1;
+    }
+    game.getNumberOfPlayers = getNumberOfPlayers;
+    function makeBuyPlay(tileIndex) {
+        if (!canMakeMove || !state || !state.house || !state.house.hand[tileIndex]) {
+            return;
+        }
+        try {
+            state.delta = { play: Play.BUY, tileKey: state.house.hand[tileIndex] };
+            $rootScope.state = state;
+            var move = gameLogic.createMove(state, turnIndex);
+            canMakeMove = false; // to prevent making another move
+            console.error("makeBuyPlay(): Making buy move. State is " + JSON.stringify(state));
+            gameService.makeMove(move);
+        }
+        catch (e) {
+            log.info(["Cannot make buy play for tile:", tileIndex]);
+            return;
+        }
+    }
+    game.makeBuyPlay = makeBuyPlay;
+    function getOpponentIds(currentPlayer) {
+        var players = state.players;
+        if (!players) {
+            return [];
+        }
+        var result = [];
+        for (var i = 0; i < players.length; i++) {
+            if (i == currentPlayer) {
+                continue;
+            }
+            result.push(i);
+        }
+        return result;
+    }
+    game.getOpponentIds = getOpponentIds;
     function getNumberOfTilesForBoneYard() {
         if (!state.house || !state.house.hand) {
             return [];
@@ -125,7 +173,7 @@ var game;
     */
     function shouldShowImage(tileLevel, tree) {
         var board = state.board;
-        if (!board) {
+        if (!board || !board.root) {
             return false;
         }
         //Root tile
@@ -133,7 +181,7 @@ var game;
             if (tileLevel != 0) {
                 return false;
             }
-            return !board.root;
+            return !!board.root;
         }
         //Check if tile at level (i) exists for right or left tree
         var i = 1;
@@ -146,7 +194,7 @@ var game;
     }
     game.shouldShowImage = shouldShowImage;
     function registerSelectedPlayerTile(tileIndex) {
-        $rootScope.tile = state.players[$rootScope.yourPlayerIndex].hand[tileIndex];
+        $rootScope.selectedTile = state.players[$rootScope.yourPlayerIndex].hand[tileIndex];
     }
     game.registerSelectedPlayerTile = registerSelectedPlayerTile;
     function registerSelectedHouseTile(tileIndex) {
@@ -189,48 +237,42 @@ var game;
                 "imgs/dominoes/domino-" + tile.leftNumber + "-" + tile.rightNumber + ".svg" :
                 "imgs/dominoes/domino-" + tile.rightNumber + "-" + tile.leftNumber + ".svg";
     }
-    function shouldSlowlyAppear(row, col) {
-        return !animationEnded &&
-            state.delta &&
-            state.delta.row === row && state.delta.col === col;
-    }
-    game.shouldSlowlyAppear = shouldSlowlyAppear;
-    //   function handleDragEvent(type, clientX, clientY) {
-    //       if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
-    //           draggingLines.style.display = "none";
-    //           myDrag.style.display = "none";
-    //           return;
-    //       }
-    //       var pos = getDraggingTilePosition(clientX, clientY);
-    //       if (type === "touchstart" ) {
-    //           dragStartHandler(pos);
-    //       }
-    //       if (!dragFrom) {
-    //           // end dragging if not a valid drag start
-    //           return;
-    //       }
-    //       if (type === "touchend") {
-    //           dragEndHandler(pos);
-    //       } else {
-    //           // drag continues
-    //           dragContinueHandler(pos);
-    //       }
-    //       if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
-    //           draggingLines.style.display = "none";
-    //           myDrag.style.display = "none";
-    //           dragFrom = null;
-    //       }
-    //   }
-    // }
-    angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
-        .run(function () {
-        $rootScope['game'] = game;
-        translate.setLanguage('en', {
-            RULES_OF_TICTACTOE: "Rules of Dominoes",
-            RULES_SLIDE1: "You and your opponent take turns to mark the grid in an empty spot. The first mark is X, then O, then X, then O, etc.",
-            RULES_SLIDE2: "The first to mark a whole row, column or diagonal wins.",
-            CLOSE: "Close"
-        });
-        game.init();
-    });
 })(game || (game = {}));
+//   function handleDragEvent(type, clientX, clientY) {
+//       if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
+//           draggingLines.style.display = "none";
+//           myDrag.style.display = "none";
+//           return;
+//       }
+//       var pos = getDraggingTilePosition(clientX, clientY);
+//       if (type === "touchstart" ) {
+//           dragStartHandler(pos);
+//       }
+//       if (!dragFrom) {
+//           // end dragging if not a valid drag start
+//           return;
+//       }
+//       if (type === "touchend") {
+//           dragEndHandler(pos);
+//       } else {
+//           // drag continues
+//           dragContinueHandler(pos);
+//       }
+//       if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
+//           draggingLines.style.display = "none";
+//           myDrag.style.display = "none";
+//           dragFrom = null;
+//       }
+//   }
+// }
+angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
+    .run(function () {
+    $rootScope['game'] = game;
+    translate.setLanguage('en', {
+        RULES_OF_TICTACTOE: "Rules of Dominoes",
+        RULES_SLIDE1: "You and your opponent take turns to mark the grid in an empty spot. The first mark is X, then O, then X, then O, etc.",
+        RULES_SLIDE2: "The first to mark a whole row, column or diagonal wins.",
+        CLOSE: "Close"
+    });
+    game.init();
+});

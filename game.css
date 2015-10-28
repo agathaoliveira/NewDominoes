@@ -13,6 +13,11 @@
   height:6%;
 }
 
+.opponent{
+  width: 100%;
+  height: 100%
+}
+
 .opponentTile{
   height: 100%;
   width: 2%;

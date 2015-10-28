@@ -229,7 +229,7 @@ var gameLogic;
     * Returns the move that should be performed when player with index turnIndexBeforeMove makes a move.
     */
     function createMove(state, turnIndexBeforeMove) {
-        var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove, playedTileKey = !(state.delta) ? undefined : state.delta.tileKey, play = state.delta.play, players = state.players, house = state.house, board = state.board;
+        var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove, playedTileKey = !(state.delta) ? undefined : state.delta.tileKey, play = state.delta === undefined ? undefined : state.delta.play, players = state.players, house = state.house, board = state.board;
         boardAfterMove = angular.copy(board);
         playersAfterMove = angular.copy(players);
         playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
@@ -304,6 +304,7 @@ var gameLogic;
         *    If the stateBeforeMove is not empty, then the board should have
         *    one or more dominoes.
         ********************************************************************/
+        console.error("isMoveOk(): Calling is move ok. State is " + JSON.stringify(stateBeforeMove));
         try {
             if (numberOfPlayers > 4) {
                 throw Error("A maximum of 4 players are allowed for this game");
@@ -315,9 +316,9 @@ var gameLogic;
             else {
                 expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove);
             }
-            console.log("ACTUAL: " + JSON.stringify(move));
-            console.log("---------------------");
-            console.log("EXPECTED: " + JSON.stringify(expectedMove));
+            //  console.log("ACTUAL: " + JSON.stringify(move));
+            //  console.log("---------------------")
+            //  console.log("EXPECTED: " + JSON.stringify(expectedMove));
             if (!angular.equals(move, expectedMove)) {
                 //  logDiffToConsole(move, expectedMove);
                 return false;

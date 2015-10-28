@@ -94,48 +94,46 @@
 <div id="gameArea">
   <!-- First row: Area for other player's tiles -->
   <div class="opponents">
-    <div class="opponent" ng-repeat="tile in [1, 2, 3, 4, 5, 6]">
+    <div class="opponent" ng-repeat="player in game.getOpponentIds(yourPlayerIndex)" style="width: {{100 / game.getNumberOfPlayers()}}%;height:100%">
       <img src="imgs/player/image1.svg" class="opponentIcon">
-      <img src="imgs/dominoes/domino-blank.svg" class="opponentTile">
-   </div>
-    <!-- TODO: repeat according to number of tiles for opponent -->
+      <img src="imgs/dominoes/domino-blank.svg" ng-repeat="tile in game.getNumberOfTilesForPlayer(player)" class="opponentTile">
+    </div>
   </div>
 
+<div class="game">
   <div class="tree0Root">
-    <img ng-src="game.getImageSource(tile, 1)" ng-if="game.shouldShowImage(0, 0)" class="rootTile">
+    <img ng-src="{{ game.getImageSource(tile, 1) }}" ng-if="game.shouldShowImage(0, 0)" class="rootTile" ng-click="game.placeTileOnTree(0)">
   </div>
-  <div class="tree0Right">
-    <img ng-repeat="tile in [1, 2, 3, 4, 5, 6]" ng-src="game.getImageSource(tile, 1)"
+  <div class="tree1Right">
+    <img ng-repeat="tile in [1, 2, 3, 4, 5, 6]" ng-src="{{ game.getImageSource(tile, 1) }}"
     ng-if="game.shouldShowImage(tile, 1)" class="horizontalTile">
   </div>
-  <div class="tree0Left">
+  <div class="tree2Left">
     <!-- Max: 10 points. Horizontal tile is two points, vertical is one point -->
-    <img ng-repeat="tile in [1, 2, 3, 4, 5, 6]" ng-src="game.getImageSource(tile, 1)"
+    <img ng-repeat="tile in [1, 2, 3, 4, 5, 6]" ng-src="{{ game.getImageSource(tile, 1) }}"
     ng-if="game.shouldShowImage(tile, 2)" class="horizontalTile">
 
   </div>
-  <div class="tree1">
-  </div>
   <div class="tree3">
-    <!-- <img src="imgs/dominoes/domino-0-1.svg" class="verticalTile"> -->
-  </div>
-  <div class="tree2">
   </div>
   <div class="tree4">
   </div>
+
+</div>
 
   <!-- Third row: area for current player's tiles -->
   <div class="currentPlayer">
       <img src="imgs/player/image2.svg" class="currentPlayerIcon">
       <img ng-repeat="tile in game.getNumberOfTilesForPlayer(yourPlayerIndex)"
-      src="game.getTileImageSourceForPlayer(yourPlayerIndex, tile)"
+      src="{{ game.getTileImageSourceForPlayer(yourPlayerIndex, tile) }}"
       ng-click="game.registerSelectedPlayerTile(tile)"
       class="currentPlayerTile">
   </div>
 
   <!-- Right Side: area for house tiles -->
   <div class="boneyard">
-      <img ng-repeat="tile in game.getNumberOfTilesForBoneYard()" src="imgs/dominoes/domino-blank.svg" class="tile">
+      <img ng-repeat="tile in game.getNumberOfTilesForBoneYard()" src="imgs/dominoes/domino-blank.svg"
+      class="tile" ng-click="game.makeBuyPlay(tile)">
   </div>
 
 </div>

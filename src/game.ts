@@ -7,6 +7,8 @@ module game {
   let treeSources: string[][] = [];
   let gameArea = document.getElementById("gameArea");
   let currentPlayerArea = document.getElementById("currentPlayer");
+  let treeNumberOfTiles: number[] = [0, 0, 0]; //Store the number of tiles on the tree
+  let treeMaxNumberOfTiles: number[] = [1, 6, 6]; //Max number of tiles for a tree
   var isUndefinedOrNull = function (val) {
           return angular.isUndefined(val) || val === null;
         };
@@ -41,6 +43,7 @@ module game {
   }
 
   function sendComputerMove() {
+    console.error("sendComputerMove(): Special Error: Calling make move for computer move");
     gameService.makeMove(
         aiService.createComputerMove(turnIndex, state));
   }
@@ -50,8 +53,11 @@ module game {
     state = params.stateAfterMove;
     $rootScope.state = state;
 
+    console.error("updateUI(): updating UI. State is: " + JSON.stringify(state));
+
     if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
       let move = gameLogic.getInitialMove(params.numberOfPlayers);
+      console.error("updateUI(): make initial move");
       gameService.makeMove(move);
     }
     canMakeMove = params.turnIndexAfterMove >= 0 && // game is ongoing
@@ -87,11 +93,13 @@ module game {
     if (!canMakeMove) {
       return;
     }
+
     try {
       state.delta.play = (treeId === 0 || treeId === 1) ? Play.RIGHT : Play.LEFT;
-      state.delta.tileKey = "tile0"; //TODO: SET THIS BASED ON WHICH TILE WAS DRAGGED TO THIS CELL
+      state.delta.tileKey = $rootScope.selectedTile;
       let move = gameLogic.createMove(state, turnIndex);
       canMakeMove = false; // to prevent making another move
+      console.error("placeTileOnTree(): Making move to place tile on tree. State is " + JSON.stringify(state));
       gameService.makeMove(move);
     } catch (e) {
       log.info(["Cannot make play for tree:", treeId]);
@@ -108,13 +116,62 @@ module game {
 
   export function getNumberOfTilesForPlayer(playerId: number): number[]
   {
-    if (!state.players[turnIndex] || !state.players[turnIndex].hand)
+    if (!state.players || !state.players[turnIndex] || !state.players[turnIndex].hand)
     {
       return [];
     }
 
     return getArrayUpToNumber(state.players[turnIndex].hand.length);
+  }
 
+  /* Get number of players but exclude current player
+  */
+  export function getNumberOfPlayers(): number
+  {
+    if (!state || !state.players)
+    {
+      return 1;
+    }
+
+    return state.players.length - 1;
+  }
+
+  export function makeBuyPlay(tileIndex: number)
+  {
+    if (!canMakeMove || !state || !state.house || !state.house.hand[tileIndex])
+    {
+      return;
+    }
+
+    try
+    {
+      state.delta = {play: Play.BUY, tileKey: state.house.hand[tileIndex]};
+      $rootScope.state = state;
+      let move = gameLogic.createMove(state, turnIndex);
+      canMakeMove = false; // to prevent making another move
+
+      console.error("makeBuyPlay(): Making buy move. State is " + JSON.stringify(state));
+      gameService.makeMove(move);
+
+    } catch (e) {
+      log.info(["Cannot make buy play for tile:", tileIndex]);
+      return;
+    }
+  }
+
+  export function getOpponentIds(currentPlayer: number): number[]
+  {
+    var players = state.players;
+    if (!players) { return []; }
+
+    var result: number[] = [];
+    for (var i = 0; i < players.length; i++)
+    {
+      if (i == currentPlayer) { continue; }
+      result.push(i);
+    }
+
+    return result;
   }
 
   export function getNumberOfTilesForBoneYard(): number
@@ -145,7 +202,7 @@ module game {
   export function shouldShowImage(tileLevel: number, tree: number): boolean {
     let board = state.board;
 
-    if (!board)
+    if (!board || !board.root)
     {
       return false;
     }
@@ -154,7 +211,7 @@ module game {
     if (tree === 0)
     {
       if (tileLevel != 0) { return false; }
-      return !board.root;
+      return !!board.root;
     }
 
     //Check if tile at level (i) exists for right or left tree
@@ -172,7 +229,7 @@ module game {
 
   export function registerSelectedPlayerTile(tileIndex: number)
   {
-    $rootScope.tile = state.players[$rootScope.yourPlayerIndex].hand[tileIndex];
+    $rootScope.selectedTile = state.players[$rootScope.yourPlayerIndex].hand[tileIndex];
   }
 
   export function registerSelectedHouseTile(tileIndex: number)
@@ -224,11 +281,12 @@ module game {
     "imgs/dominoes/domino-" + tile.rightNumber + "-" + tile.leftNumber + ".svg";
   }
 
-  export function shouldSlowlyAppear(row: number, col: number): boolean {
-    return !animationEnded &&
-        state.delta &&
-        state.delta.row === row && state.delta.col === col;
-  }
+  // export function shouldSlowlyAppear(row: number, col: number): boolean {
+  //   return !animationEnded &&
+  //       state.delta &&
+  //       state.delta.row === row && state.delta.col === col;
+  // }
+}
 
 //   function handleDragEvent(type, clientX, clientY) {
 //       if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
