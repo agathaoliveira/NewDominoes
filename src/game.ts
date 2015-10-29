@@ -44,7 +44,7 @@ module game {
   }
 
   function sendComputerMove() {
-    console.error("sendComputerMove(): Calling make move for computer move");
+    log.info("sendComputerMove(): Calling make move for computer move");
     gameService.makeMove(
         aiService.createComputerMove(turnIndex, state));
   }
@@ -54,11 +54,11 @@ module game {
     state = params.stateAfterMove;
     $rootScope.state = state;
 
-    console.error("updateUI(): updating UI.");
+    log.info("updateUI(): updating UI.");
 
     if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
       let move = gameLogic.getInitialMove(params.numberOfPlayers);
-      console.error("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
+      log.info("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
       gameService.makeMove(move);
     }
     canMakeMove = params.turnIndexAfterMove >= 0 && // game is ongoing
@@ -72,7 +72,7 @@ module game {
     {
       let delta = { play: Play.END };
       state.delta = delta;
-      let move = gameLogic.createMove(state, params.turnIndexAfterMove, delta);
+      let move = gameLogic.createMove(state, params.turnIndexAfterMove, delta, state);
       gameService.makeMove(move);
     }
     else if (!!state && !!state.delta && state.delta.play === Play.END)
@@ -114,7 +114,7 @@ module game {
       let play = isRightTree(treeId) ? Play.RIGHT : Play.LEFT;
       let tileKey = $rootScope.selectedTile;
       state.delta = { play: play, tileKey: tileKey };
-      let move = gameLogic.createMove(state, turnIndex, { play: play, tileKey: tileKey });
+      let move = gameLogic.createMove(state, turnIndex, { play: play, tileKey: tileKey }, state);
       canMakeMove = false; // to prevent making another move
       log.error("placeTileOnTree(): Making move to place tile on tree. Calling makeMove with move " + JSON.stringify(move));
       $rootScope.selectedTile = undefined;
@@ -134,12 +134,12 @@ module game {
 
   export function getNumberOfTilesForPlayer(playerId: number): number[]
   {
-    if (!state.players || !state.players[turnIndex] || !state.players[turnIndex].hand)
+    if (!state.players || !state.players[playerId] || !state.players[playerId].hand)
     {
       return [];
     }
 
-    return getArrayUpToNumber(state.players[turnIndex].hand.length);
+    return getArrayUpToNumber(state.players[playerId].hand.length);
   }
 
   /* Get number of players but exclude current player
@@ -164,7 +164,7 @@ module game {
     try
     {
       let delta = {play: Play.BUY, tileKey: state.house.hand[tileIndex]};
-      let move = gameLogic.createMove(state, turnIndex, delta);
+      let move = gameLogic.createMove(state, turnIndex, delta, state);
       canMakeMove = false; // to prevent making another move
 
       console.error("makeBuyPlay(): Calling makeMove");
@@ -310,7 +310,7 @@ module game {
       }
       else if (parentFlipped && parent.leftNumber <= parent.rightNumber)
       {
-        if (tile.rightNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber){ flipped = true; }
+        if (tile.rightNumber === parent.leftNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
         else if (tile.leftNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
       }
     }

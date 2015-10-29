@@ -41,17 +41,17 @@ var game;
         });
     }
     function sendComputerMove() {
-        console.error("sendComputerMove(): Calling make move for computer move");
+        log.info("sendComputerMove(): Calling make move for computer move");
         gameService.makeMove(aiService.createComputerMove(turnIndex, state));
     }
     function updateUI(params) {
         animationEnded = false;
         state = params.stateAfterMove;
         $rootScope.state = state;
-        console.error("updateUI(): updating UI.");
+        log.info("updateUI(): updating UI.");
         if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
             var move = gameLogic.getInitialMove(params.numberOfPlayers);
-            console.error("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
+            log.info("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
             gameService.makeMove(move);
         }
         canMakeMove = params.turnIndexAfterMove >= 0 &&
@@ -62,7 +62,7 @@ var game;
         if (!!state && !!state.delta && state.delta.play === Play.REVEAL) {
             var delta = { play: Play.END };
             state.delta = delta;
-            var move = gameLogic.createMove(state, params.turnIndexAfterMove, delta);
+            var move = gameLogic.createMove(state, params.turnIndexAfterMove, delta, state);
             gameService.makeMove(move);
         }
         else if (!!state && !!state.delta && state.delta.play === Play.END) {
@@ -100,7 +100,7 @@ var game;
             var play = isRightTree(treeId) ? Play.RIGHT : Play.LEFT;
             var tileKey = $rootScope.selectedTile;
             state.delta = { play: play, tileKey: tileKey };
-            var move = gameLogic.createMove(state, turnIndex, { play: play, tileKey: tileKey });
+            var move = gameLogic.createMove(state, turnIndex, { play: play, tileKey: tileKey }, state);
             canMakeMove = false; // to prevent making another move
             log.error("placeTileOnTree(): Making move to place tile on tree. Calling makeMove with move " + JSON.stringify(move));
             $rootScope.selectedTile = undefined;
@@ -120,10 +120,10 @@ var game;
     }
     game.getTileImageSourceForPlayer = getTileImageSourceForPlayer;
     function getNumberOfTilesForPlayer(playerId) {
-        if (!state.players || !state.players[turnIndex] || !state.players[turnIndex].hand) {
+        if (!state.players || !state.players[playerId] || !state.players[playerId].hand) {
             return [];
         }
-        return getArrayUpToNumber(state.players[turnIndex].hand.length);
+        return getArrayUpToNumber(state.players[playerId].hand.length);
     }
     game.getNumberOfTilesForPlayer = getNumberOfTilesForPlayer;
     /* Get number of players but exclude current player
@@ -141,7 +141,7 @@ var game;
         }
         try {
             var delta = { play: Play.BUY, tileKey: state.house.hand[tileIndex] };
-            var move = gameLogic.createMove(state, turnIndex, delta);
+            var move = gameLogic.createMove(state, turnIndex, delta, state);
             canMakeMove = false; // to prevent making another move
             console.error("makeBuyPlay(): Calling makeMove");
             gameService.makeMove(move);
@@ -268,7 +268,7 @@ var game;
                 }
             }
             else if (parentFlipped && parent.leftNumber <= parent.rightNumber) {
-                if (tile.rightNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) {
+                if (tile.rightNumber === parent.leftNumber && tile.rightNumber > tile.leftNumber) {
                     flipped = true;
                 }
                 else if (tile.leftNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) {

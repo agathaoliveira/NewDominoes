@@ -219,6 +219,15 @@ module gameLogic {
     return points;
   }
 
+  function validateTiles(tile: ITile, boardTile: ITile)
+  {
+    if (tile.rightNumber !== boardTile.rightNumber && tile.rightNumber !== boardTile.leftNumber &&
+      tile.leftNumber !== boardTile.rightNumber && tile.leftNumber !== boardTile.leftNumber)
+      {
+          throw new Error("Cannot place tile at the board! Numbers are invalid.");
+      }
+  }
+
   export function createMoveEndGame(allPlayers: IPlayer[], state: IState, delta: BoardDelta): IMove
   {
     var operations: IMove = [],
@@ -295,7 +304,7 @@ module gameLogic {
   }
 
   export function createMovePlay(board: IBoard, delta: BoardDelta, player: IPlayer,
-    allPlayers: IPlayer[], playedTileKey: string, turnIndexBeforeMove: number, play: Play): IMove
+    allPlayers: IPlayer[], playedTileKey: string, turnIndexBeforeMove: number, play: Play, stateAfterMove: IState): IMove
   {
     var operations: IMove,
     visibility: ISetVisibility,
@@ -313,14 +322,26 @@ module gameLogic {
 
     if (!board.root)
     {
+      var tile: ITile = stateAfterMove[playedTileKey];
+      if (tile.leftNumber != tile.rightNumber) { throw new Error("First tile must be a double"); }
       setBoardRoot(board, playedTile);
     }
     else if (play === Play.RIGHT)
     {
+      var tile: ITile = stateAfterMove[playedTileKey];
+      var rightTile: ITile = stateAfterMove[playedTileKey];
+
+      validateTiles(tile, rightTile);
+
       addTileToTheRight(board, playedTile);
     }
     else //Play.LEFT
     {
+      var tile: ITile = stateAfterMove[playedTileKey];
+      var leftTile: ITile = stateAfterMove[playedTileKey];
+
+      validateTiles(tile, leftTile);
+
       addTileToTheLeft(board, playedTile);
     }
 
@@ -344,7 +365,7 @@ module gameLogic {
   /**
   * Returns the move that should be performed when player with index turnIndexBeforeMove makes a move.
   */
-  export function createMove(state: IState, turnIndexBeforeMove: number, delta: BoardDelta): IMove {
+  export function createMove(state: IState, turnIndexBeforeMove: number, delta: BoardDelta, stateAfterMove: IState): IMove {
     var operations: IMove,
     visibility: ISetVisibility,
     boardAfterMove: IBoard,
@@ -366,7 +387,7 @@ module gameLogic {
     //If there was no tile on the board before, this is the first tile
     if (Play.LEFT === play || Play.RIGHT === play)
     {
-      return createMovePlay(boardAfterMove, delta, playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play);
+      return createMovePlay(boardAfterMove, delta, playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play, stateAfterMove);
     }
     else if (Play.BUY === play)
     {
@@ -449,7 +470,7 @@ module gameLogic {
       }
       else
       {
-        expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta);
+        expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta, params.stateAfterMove);
       }
 
       //  console.log("ACTUAL: " + JSON.stringify(move));

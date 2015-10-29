@@ -129,6 +129,12 @@ var gameLogic;
         }
         return points;
     }
+    function validateTiles(tile, boardTile) {
+        if (tile.rightNumber !== boardTile.rightNumber && tile.rightNumber !== boardTile.leftNumber &&
+            tile.leftNumber !== boardTile.rightNumber && tile.leftNumber !== boardTile.leftNumber) {
+            throw new Error("Cannot place tile at the board! Numbers are invalid.");
+        }
+    }
     function createMoveEndGame(allPlayers, state, delta) {
         var operations = [], remainingPoints = [], numberOfPlayers = allPlayers.length, totalPoints = 0;
         for (var i = 0; i < numberOfPlayers; i++) {
@@ -177,7 +183,7 @@ var gameLogic;
         return operations;
     }
     gameLogic.createMoveBuy = createMoveBuy;
-    function createMovePlay(board, delta, player, allPlayers, playedTileKey, turnIndexBeforeMove, play) {
+    function createMovePlay(board, delta, player, allPlayers, playedTileKey, turnIndexBeforeMove, play, stateAfterMove) {
         var operations, visibility, numberOfPlayers = allPlayers.length, playedTile = { tileKey: playedTileKey };
         //Check if someone has already won the game
         for (var i = 0; i < numberOfPlayers; i++) {
@@ -186,12 +192,22 @@ var gameLogic;
             }
         }
         if (!board.root) {
+            var tile = stateAfterMove[playedTileKey];
+            if (tile.leftNumber != tile.rightNumber) {
+                throw new Error("First tile must be a double");
+            }
             setBoardRoot(board, playedTile);
         }
         else if (play === Play.RIGHT) {
+            var tile = stateAfterMove[playedTileKey];
+            var rightTile = stateAfterMove[playedTileKey];
+            validateTiles(tile, rightTile);
             addTileToTheRight(board, playedTile);
         }
         else {
+            var tile = stateAfterMove[playedTileKey];
+            var leftTile = stateAfterMove[playedTileKey];
+            validateTiles(tile, leftTile);
             addTileToTheLeft(board, playedTile);
         }
         removeTileFromHand(player, playedTileKey);
@@ -210,7 +226,7 @@ var gameLogic;
     /**
     * Returns the move that should be performed when player with index turnIndexBeforeMove makes a move.
     */
-    function createMove(state, turnIndexBeforeMove, delta) {
+    function createMove(state, turnIndexBeforeMove, delta, stateAfterMove) {
         var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove, playedTileKey = !(delta) ? undefined : delta.tileKey, play = delta === undefined ? undefined : delta.play, players = state.players, house = state.house, board = state.board;
         boardAfterMove = angular.copy(board);
         playersAfterMove = angular.copy(players);
@@ -218,7 +234,7 @@ var gameLogic;
         houseAfterMove = angular.copy(house);
         //If there was no tile on the board before, this is the first tile
         if (Play.LEFT === play || Play.RIGHT === play) {
-            return createMovePlay(boardAfterMove, delta, playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play);
+            return createMovePlay(boardAfterMove, delta, playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play, stateAfterMove);
         }
         else if (Play.BUY === play) {
             return createMoveBuy(houseAfterMove, playedTileKey, playerAfterMove, playersAfterMove, boardAfterMove, delta, turnIndexBeforeMove);
@@ -285,7 +301,7 @@ var gameLogic;
                 return true;
             }
             else {
-                expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta);
+                expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta, params.stateAfterMove);
             }
             //  console.log("ACTUAL: " + JSON.stringify(move));
             //  console.log("---------------------")
