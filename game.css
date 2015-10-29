@@ -5,6 +5,11 @@
   border-bottom: 4pt solid black;
 }
 
+.scoreText{
+  display: inline;
+  color: blue;
+}
+
 .opponents{
   position:absolute;
   top:0%;
@@ -56,7 +61,7 @@
   background-color: green;
 }
 
-.tree0Root{
+.tree0{
  width: 7%;
  text-align: center;
  position: absolute;
@@ -65,18 +70,18 @@
  left: 45.6%;
 }
 
-.tree0Right{
-  width: 46%;
+.tree1{
+  width: 46.5%;
   text-align: left;
   position: absolute;
   top: 46%;
   height: 16%;
-  left: 50.5%;
+  left: 52.5%;
   margin: 0 0 0 0;
 }
 
-.tree0Left{
-  width: 46%;
+.tree2{
+  width: 46.5%;
   text-align: right;
   position: absolute;
   top: 46%;
@@ -84,40 +89,80 @@
   left: 0;
 }
 
-.tree1{
+.tree3{
+  width: 15%;
+  text-align: center;
+  position: absolute;
+  top: 30%;
+  height: 14%;
+  left: 2%; /* 2% if no vertical tiles; 6% if 1 vertical tile; 9.5% if 2 vertical tiles */
+}
+
+.maxWidthHeightTile{
+  width: 100%;
+  height: 100%;
+  -webkit-transform: rotate(180deg);
+}
+
+.maxWidthHeightTileFlip{
+  width: 100%;
+  height: 100%;
+}
+
+.tree4{
   width: 15%;
   text-align: center;
   position: absolute;
   top: 15%;
-  height: 30%;
-  left: 6%; /* 2% if no vertical tiles; 6% if 1 vertical tile; 9.5% if 2 vertical tiles */
+  height: 14%;
+  left: 2%; /* 2% if no vertical tiles; 6% if 1 vertical tile; 9.5% if 2 vertical tiles */
 
 }
 
-.tree1Tile{
-  width: 24%;
-  height: 50%;
-  display: block;
-}
-
-.tree2{
-  width: 100%;
+.tree5{
+  width: 93%;
   text-align: left;
   position: absolute;
   top: 0;
   height: 20%;
-  left: 5%;
+  left: 7%;
 }
 
-.tree2Tile{
+.tree5Tile{
   width: 3.5%;
   height: 100%;
   -webkit-transform-origin: 70% 60%;
   -webkit-transform: rotate(90deg);
-  margin: 0 2% 0 1%;
+  margin: 0 3% 0 1%;
 }
 
-.tree2TileFlip{
+.tree5TileFlipped{
+  width: 3.5%;
+  height: 100%;
+  -webkit-transform-origin: 65% 37%;
+  -webkit-transform: rotate(270deg);
+  margin: 0 3% 0 1%;
+}
+
+.tree6{
+  width: 11%;
+  text-align: center;
+  position: absolute;
+  top: 62%;
+  height: 14%;
+  left: 92%;
+}
+
+.tree7{
+  width: 98%;
+  text-align: right;
+  position: absolute;
+  top: 77%;
+  height: 20%;
+  left: 0;
+}
+
+.tree4TileFlip{
   width: 3.5%;
   height: 100%;
   -webkit-transform-origin: 72% 43%;
@@ -142,7 +187,7 @@
   height: 100%;
   -webkit-transform-origin: 70% 60%;
   -webkit-transform: rotate(90deg);
-  margin: 0 3% 0 1%;
+  margin: 0 4% 0 1%;
 }
 
 .horizontalTileFlip{

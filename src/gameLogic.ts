@@ -1,6 +1,7 @@
 interface ITile {
-  leftNumber: number;
-  rightNumber: number;
+  tileKey?: string;
+  leftNumber?:number;
+  rightNumber?:number;
   leftTile?: ITile;
   rightTile?: ITile;
 }
@@ -11,8 +12,8 @@ interface ITile {
 */
 interface IBoard {
   root: ITile;
-  leftMost?: ITile; //the index of the left most child
-  rightMost?: ITile; //the index of the right most child
+  leftMost?: string; //the index of the left most child
+  rightMost?: string; //the index of the right most child
 }
 
 enum Play {
@@ -40,65 +41,34 @@ module gameLogic {
 
   function setBoardRoot(board: IBoard, tile: ITile){
     board.root = tile;
-    board.leftMost = tile;
-    board.rightMost = tile;
-  }
-
-  function flipNumbers(tile: ITile){
-    var temp:number = tile.leftNumber;
-    tile.leftNumber = tile.rightNumber;
-    tile.rightNumber = temp;
+    board.leftMost = tile.tileKey;
+    board.rightMost = tile.tileKey;
   }
 
   function addTileToTheRight(board: IBoard, playedTile: ITile){
-    var rightNumber: number = board.rightMost.rightNumber;
+    var rightTileKey: string = board.rightMost;
 
-    if (playedTile.leftNumber !== rightNumber)
-    {
-      if (playedTile.rightNumber !== rightNumber)
-      {
-        throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when right tile is " + JSON.stringify(board.rightMost));
-      }
-      else
-      {
-        flipNumbers(playedTile);
-      }
-    }
-
-    var currentTile = board.root;
-    while (currentTile.rightNumber != board.rightMost.rightNumber && currentTile.leftNumber != board.rightMost.leftNumber)
+    var currentTile: ITile = board.root;
+    while (currentTile.tileKey !== rightTileKey)
     {
       currentTile = currentTile.rightTile;
     }
 
     currentTile.rightTile = playedTile;
-    board.rightMost = playedTile;
+    board.rightMost = playedTile.tileKey;
   }
 
   function addTileToTheLeft(board: IBoard, playedTile: ITile){
+    var leftTileKey: string = board.leftMost;
 
-    var leftNumber: number = board.leftMost.leftNumber;
-
-    if (playedTile.rightNumber !== leftNumber)
-    {
-      if (playedTile.leftNumber !== leftNumber)
-      {
-        throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the left when left tile is " + JSON.stringify(board.leftMost));
-      }
-      else
-      {
-        flipNumbers(playedTile);
-      }
-    }
-
-    var currentTile = board.root;
-    while (currentTile.rightNumber != board.leftMost.rightNumber && currentTile.leftNumber != board.leftMost.leftNumber)
+    var currentTile: ITile = board.root;
+    while (currentTile.tileKey !== leftTileKey)
     {
       currentTile = currentTile.leftTile;
     }
 
     currentTile.leftTile = playedTile;
-    board.leftMost = playedTile;
+    board.leftMost = playedTile.tileKey;
   }
 
   function addTileToHand(player: IPlayer, tileKey: string){
@@ -249,7 +219,7 @@ module gameLogic {
     return points;
   }
 
-  export function createMoveEndGame(allPlayers: IPlayer[], state: IState): IMove
+  export function createMoveEndGame(allPlayers: IPlayer[], state: IState, delta: BoardDelta): IMove
   {
     var operations: IMove = [],
     remainingPoints: number[] = [],
@@ -270,6 +240,7 @@ module gameLogic {
     }
 
     operations.push({endMatch: {endMatchScores: endScores}});
+    operations.push({set: {key: 'delta', value: delta}});
     return operations;
   }
 
@@ -282,7 +253,7 @@ module gameLogic {
     return operations;
   }
 
-  export function createMoveReveal(numberOfPlayers: number, turnIndexBeforeMove: number):IMove
+  export function createMoveReveal(numberOfPlayers: number, turnIndexBeforeMove: number, delta: BoardDelta):IMove
   {
     var operations: IMove = [],
     playerIndexes = getVisibilityForAllPlayers(numberOfPlayers);
@@ -293,6 +264,7 @@ module gameLogic {
     }
 
     operations.push({setTurn: {turnIndex: turnIndexBeforeMove}});
+    operations.push({set: {key: 'delta', value: delta}});
     return operations;
   }
 
@@ -317,17 +289,18 @@ module gameLogic {
 
     allPlayers[turnIndexBeforeMove] = player;
     operations = getGenericMove(turnIndexBeforeMove, board, delta, visibility, allPlayers);
-    operations.concat([{set: {key: 'house', value: house}}]);
+    operations = operations.concat([{set: {key: 'house', value: house}}]);
 
     return operations;
   }
 
-  export function createMovePlay(board: IBoard, delta: BoardDelta, playedTile: ITile, player: IPlayer,
+  export function createMovePlay(board: IBoard, delta: BoardDelta, player: IPlayer,
     allPlayers: IPlayer[], playedTileKey: string, turnIndexBeforeMove: number, play: Play): IMove
   {
     var operations: IMove,
     visibility: ISetVisibility,
-    numberOfPlayers = allPlayers.length;
+    numberOfPlayers = allPlayers.length,
+    playedTile: ITile = {tileKey: playedTileKey};
 
     //Check if someone has already won the game
     for (var i = 0; i < numberOfPlayers; i++)
@@ -363,22 +336,23 @@ module gameLogic {
     }
     else
     {
-      return createMoveReveal(numberOfPlayers, turnIndexBeforeMove);
+      delta.play = Play.REVEAL;
+      return createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta);
     }
   }
 
   /**
   * Returns the move that should be performed when player with index turnIndexBeforeMove makes a move.
   */
-  export function createMove(state: IState, turnIndexBeforeMove: number): IMove {
+  export function createMove(state: IState, turnIndexBeforeMove: number, delta: BoardDelta): IMove {
     var operations: IMove,
     visibility: ISetVisibility,
     boardAfterMove: IBoard,
     playersAfterMove: IPlayer[],
     playerAfterMove: IPlayer,
     houseAfterMove: IPlayer,
-    playedTileKey: string = !(state.delta) ? undefined : state.delta.tileKey,
-    play: Play = state.delta === undefined ? undefined : state.delta.play,
+    playedTileKey: string = !(delta) ? undefined : delta.tileKey,
+    play: Play = delta === undefined ? undefined : delta.play,
     players: IPlayer[] = state.players,
     house: IPlayer = state.house,
     board: IBoard = state.board;
@@ -388,12 +362,11 @@ module gameLogic {
     playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
     houseAfterMove = angular.copy(house);
 
-    let delta: BoardDelta = {tileKey: playedTileKey, play: play};
 
     //If there was no tile on the board before, this is the first tile
     if (Play.LEFT === play || Play.RIGHT === play)
     {
-      return createMovePlay(board, delta, state[playedTileKey], playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play);
+      return createMovePlay(boardAfterMove, delta, playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play);
     }
     else if (Play.BUY === play)
     {
@@ -405,11 +378,11 @@ module gameLogic {
     }
     else if (Play.REVEAL === play)
     {
-      return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove);
+      return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove, delta);
     }
     else if (Play.END === play)
     {
-      return createMoveEndGame(playersAfterMove, state);
+      return createMoveEndGame(playersAfterMove, state, delta);
     }
     else
     {
@@ -431,25 +404,6 @@ module gameLogic {
     logDiffToConsole(o1[k], o2[k]);
   }
 }*/
-
-export function hasTileWithNumbers(state: IState, turnIndex: number, firstNumber: number, secondNumber: number): boolean
-{
-  var player: IPlayer = state.players[turnIndex];
-  for (var i = 0; i < player.hand.length; i++)
-  {
-    var tile: ITile = state[player.hand[i]];
-    if ((tile.leftNumber === firstNumber && tile.rightNumber === secondNumber) || (tile.rightNumber === firstNumber && tile.leftNumber === secondNumber))
-    {
-      return true;
-    }
-  }
-
-  return false;
-}
-
-export function canStartGame(state: IState, turnIndex: number, value: number): boolean {
-  return hasTileWithNumbers(state, turnIndex, value, value);
-}
 
 
 /**
@@ -473,7 +427,10 @@ export function canStartGame(state: IState, turnIndex: number, value: number): b
     *    one or more dominoes.
     ********************************************************************/
 
-    console.error("isMoveOk(): Calling is move ok. State is " + JSON.stringify(stateBeforeMove));
+    console.error("isMoveOk(): Calling is move ok");
+    console.error("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
+    console.error("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
+
     try {
       if (numberOfPlayers > 4)
       {
@@ -486,9 +443,13 @@ export function canStartGame(state: IState, turnIndex: number, value: number): b
       {
         expectedMove = getInitialMove(numberOfPlayers);
       }
+      else if (move[0].endMatch !== undefined)
+      {
+        return true;
+      }
       else
       {
-        expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove);
+        expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta);
       }
 
       //  console.log("ACTUAL: " + JSON.stringify(move));

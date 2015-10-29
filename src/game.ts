@@ -5,10 +5,9 @@ module game {
   let state: IState = null;
   let turnIndex: number = null;
   let treeSources: string[][] = [];
+  let treeClasses: string[][] = [];
   let gameArea = document.getElementById("gameArea");
   let currentPlayerArea = document.getElementById("currentPlayer");
-  let treeNumberOfTiles: number[] = [0, 0, 0]; //Store the number of tiles on the tree
-  let treeMaxNumberOfTiles: number[] = [1, 6, 6]; //Max number of tiles for a tree
   var isUndefinedOrNull = function (val) {
           return angular.isUndefined(val) || val === null;
         };
@@ -25,6 +24,8 @@ module game {
       isMoveOk: gameLogic.isMoveOk,
       updateUI: updateUI
     });
+
+    $rootScope.hasGameEnded = false;
 
     // See http://www.sitepoint.com/css3-animation-javascript-event-handlers/
     document.addEventListener("animationend", animationEndedCallback, false); // standard
@@ -43,7 +44,7 @@ module game {
   }
 
   function sendComputerMove() {
-    console.error("sendComputerMove(): Special Error: Calling make move for computer move");
+    console.error("sendComputerMove(): Calling make move for computer move");
     gameService.makeMove(
         aiService.createComputerMove(turnIndex, state));
   }
@@ -53,11 +54,11 @@ module game {
     state = params.stateAfterMove;
     $rootScope.state = state;
 
-    console.error("updateUI(): updating UI. State is: " + JSON.stringify(state));
+    console.error("updateUI(): updating UI.");
 
     if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
       let move = gameLogic.getInitialMove(params.numberOfPlayers);
-      console.error("updateUI(): make initial move");
+      console.error("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
       gameService.makeMove(move);
     }
     canMakeMove = params.turnIndexAfterMove >= 0 && // game is ongoing
@@ -66,6 +67,21 @@ module game {
 
     $rootScope.yourPlayerIndex = params.yourPlayerIndex;
     $rootScope.turnIndex = params.turnIndexAfterMove;
+
+    if (!!state && !!state.delta && state.delta.play === Play.REVEAL)
+    {
+      let delta = { play: Play.END };
+      state.delta = delta;
+      let move = gameLogic.createMove(state, params.turnIndexAfterMove, delta);
+      gameService.makeMove(move);
+    }
+    else if (!!state && !!state.delta && state.delta.play === Play.END)
+    {
+      $rootScope.hasGameEnded = true;
+      $rootScope.scores = params.endMatchScores;
+      $rootScope.yourPlayerIndex = params.turnIndexBeforeMove;
+      return;
+    }
 
     // Is it the computer's turn?
     isComputerTurn = canMakeMove &&
@@ -90,19 +106,21 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    if (!canMakeMove) {
+    if (!canMakeMove || $rootScope.selectedTile === undefined) {
       return;
     }
 
     try {
-      state.delta.play = (treeId === 0 || treeId === 1) ? Play.RIGHT : Play.LEFT;
-      state.delta.tileKey = $rootScope.selectedTile;
-      let move = gameLogic.createMove(state, turnIndex);
+      let play = isRightTree(treeId) ? Play.RIGHT : Play.LEFT;
+      let tileKey = $rootScope.selectedTile;
+      state.delta = { play: play, tileKey: tileKey };
+      let move = gameLogic.createMove(state, turnIndex, { play: play, tileKey: tileKey });
       canMakeMove = false; // to prevent making another move
-      console.error("placeTileOnTree(): Making move to place tile on tree. State is " + JSON.stringify(state));
+      log.error("placeTileOnTree(): Making move to place tile on tree. Calling makeMove with move " + JSON.stringify(move));
+      $rootScope.selectedTile = undefined;
       gameService.makeMove(move);
     } catch (e) {
-      log.info(["Cannot make play for tree:", treeId]);
+      log.error(["Cannot make play for tree:", treeId]);
       return;
     }
   }
@@ -145,16 +163,15 @@ module game {
 
     try
     {
-      state.delta = {play: Play.BUY, tileKey: state.house.hand[tileIndex]};
-      $rootScope.state = state;
-      let move = gameLogic.createMove(state, turnIndex);
+      let delta = {play: Play.BUY, tileKey: state.house.hand[tileIndex]};
+      let move = gameLogic.createMove(state, turnIndex, delta);
       canMakeMove = false; // to prevent making another move
 
-      console.error("makeBuyPlay(): Making buy move. State is " + JSON.stringify(state));
+      console.error("makeBuyPlay(): Calling makeMove");
       gameService.makeMove(move);
 
     } catch (e) {
-      log.info(["Cannot make buy play for tile:", tileIndex]);
+      log.error(["Cannot make buy play for tile:", tileIndex]);
       return;
     }
   }
@@ -216,12 +233,12 @@ module game {
 
     //Check if tile at level (i) exists for right or left tree
     var i = 1;
-    var tile: ITile = tree === 1 ? board.root.rightTile : board.root.leftTile;
+    var tile: ITile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
 
-    while (i !== tileLevel || tile !== undefined)
+    while (i !== tileLevel && tile !== undefined)
     {
       i++;
-      tile = tree === 1 ? tile.rightTile : tile.leftTile;
+      tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
     }
 
     return !(tile === undefined)
@@ -237,37 +254,162 @@ module game {
     $rootScope.tile = state.house.hand[tileIndex];
   }
 
-  /*Get image source for tile at the indicated level on right or left tree*/
-  export function getImageSource(tileLevel: number, tree: string): string {
+  export function getImageClass(tileLevel: number, tree: number): string{
     let board = state.board;
 
-    if (!treeSources[tree][tileLevel])
+    if (!!treeClasses[tree] && !!treeClasses[tree][tileLevel])
+    {
+      return treeClasses[tree][tileLevel];
+    }
+
+    if (board.leftMost === board.root.tileKey && board.rightMost === board.root.tileKey)
+    {
+      var imageClass: string = "rootTile";
+      treeClasses[tree] = [];
+      treeClasses[tree][tileLevel] = imageClass;
+      return imageClass;
+    }
+
+    var parent:ITile = board.root;
+    //Check if tile at level (i) exists for right or left tree
+    var flipped: boolean = false;
+    var i = 1;
+    var tile: ITile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
+
+    while (i !== tileLevel && tile !== undefined)
+    {
+      parent = tile;
+      i++;
+      tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
+    }
+
+    tile = tile === undefined ? undefined : state[tile.tileKey];
+    parent = parent === undefined ? undefined : state[parent.tileKey];
+
+    //parent was flipped
+    var parentFlipped = false;
+    if (!!treeClasses[tree])
+    { parentFlipped = treeClasses[tree][tileLevel-1] === getClassForTree(tree, true);}
+
+    if (tile !== undefined && !isRightTree(tree)) //LEFT TREE
+    {
+      if (!parentFlipped && parent.leftNumber >= parent.rightNumber)
+      {
+        if (tile.rightNumber === parent.leftNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
+        else if (tile.leftNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
+      }
+      else if (!parentFlipped && parent.rightNumber >= parent.leftNumber)
+      {
+        if (tile.rightNumber === parent.rightNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
+        else if (tile.leftNumber === parent.rightNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
+      }
+      else if (parentFlipped && parent.rightNumber <= parent.leftNumber)
+      {
+        if (tile.rightNumber === parent.rightNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
+        else if (tile.leftNumber === parent.rightNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
+      }
+      else if (parentFlipped && parent.leftNumber <= parent.rightNumber)
+      {
+        if (tile.rightNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber){ flipped = true; }
+        else if (tile.leftNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
+      }
+    }
+    else if (tile !== undefined)
+    {
+      if (isHighLow(tree))
+      {
+        if (!parentFlipped && parent.leftNumber > parent.rightNumber)
+        {
+          if (tile.rightNumber === parent.leftNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
+          else if (tile.leftNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
+        }
+        else if (!parentFlipped && parent.rightNumber > parent.leftNumber)
+        {
+          if (tile.rightNumber === parent.rightNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
+          else if (tile.leftNumber === parent.rightNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
+        }
+        else if (parentFlipped && parent.leftNumber > parent.rightNumber)
+        {
+          if (tile.rightNumber === parent.rightNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
+          else if (tile.leftNumber === parent.rightNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
+        }
+      }
+    }
+    var imageClass: string = getClassForTree(tree, flipped);
+
+    if (!treeClasses[tree])
+    {
+      treeClasses[tree] = [];
+    }
+    treeClasses[tree][tileLevel] = imageClass;
+    return imageClass;
+
+  }
+
+  function getClassForTree(tree: number, flipped: boolean): string{
+    if (tree === 1 || tree === 2){
+      if (flipped){ return "horizontalTileFlip"; }
+      return "horizontalTile";
+    }
+    if (tree === 3 || tree === 4)
+    {
+      if (flipped){ return "maxWidthHeightTileFlip"; }
+      else { return "maxWidthHeightTile"; }
+    }
+    if (tree === 5)
+    {
+      if (flipped){}
+      else { return "tree5Tile"; }
+    }
+  }
+
+  /*Get image source for tile at the indicated level on right or left tree*/
+  export function getImageSource(tileLevel: number, tree: number): string {
+    let board = state.board;
+
+    if (!!treeSources[tree] && !!treeSources[tree][tileLevel])
     {
       return treeSources[tree][tileLevel];
     }
 
     //Root tile
-    if (tree === '0')
+    if (board.leftMost === board.root.tileKey && board.rightMost === board.root.tileKey)
     {
-      if (tileLevel != 0) { return; }
-      var image: string = constructImageUrl(board.root);
+      var image: string = constructImageUrl(state[board.root.tileKey]);
+      treeSources[tree] = [];
       treeSources[tree][tileLevel] = image;
       return image;
     }
 
-    //Check if tile at level (i) exists for right or left tree
     var i = 1;
-    var tile: ITile = tree === '1' ? board.root.rightTile : board.root.leftTile;
+    var tile: ITile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
 
     while (i !== tileLevel && tile !== undefined)
     {
       i++;
-      tile = tree === '1' ? tile.rightTile : tile.leftTile;
+      tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
     }
 
-    var image: string = constructImageUrl(tile);
+    tile = tile === undefined ? undefined : state[tile.tileKey];
+
+    var image: string = constructImageUrl(tile === undefined ? undefined : tile);
+    if (!treeSources[tree])
+    {
+      treeSources[tree] = [];
+    }
     treeSources[tree][tileLevel] = image;
     return image;
+  }
+
+  //3 is not
+  function isHighLow(tree: number)
+  {
+    return (tree === 2 || tree === 1);
+  }
+
+  function isRightTree(tree: number): boolean
+  {
+    return (tree === 0 || tree === 1 || tree === 6 || tree === 7 || tree === 8);
   }
 
   /*If tile exists, return the real tile. Otherwise, return blank tile.
@@ -275,12 +417,21 @@ module game {
   */
   function constructImageUrl(tile: ITile) : string
   {
-    return tile === undefined ? "imgs/dominoes/domino-blank.svg" :
-    tile.leftNumber <= tile.rightNumber ?
-    "imgs/dominoes/domino-" + tile.leftNumber + "-" + tile.rightNumber + ".svg" :
-    "imgs/dominoes/domino-" + tile.rightNumber + "-" + tile.leftNumber + ".svg";
+    if(tile === undefined)
+    {
+        return "imgs/dominoes/domino-blank.svg";
+    }
+
+    return tile.leftNumber <= tile.rightNumber ?
+      "imgs/dominoes/domino-" + tile.leftNumber + "-" + tile.rightNumber + ".svg" :
+      "imgs/dominoes/domino-" + tile.rightNumber + "-" + tile.leftNumber + ".svg";
   }
 
+  export function getFinalScore(player: number): string
+  {
+    var scores:number[] = $rootScope.scores;
+    return "" + scores[player];
+  }
   // export function shouldSlowlyAppear(row: number, col: number): boolean {
   //   return !animationEnded &&
   //       state.delta &&

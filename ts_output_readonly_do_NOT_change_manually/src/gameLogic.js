@@ -11,47 +11,26 @@ var gameLogic;
 (function (gameLogic) {
     function setBoardRoot(board, tile) {
         board.root = tile;
-        board.leftMost = tile;
-        board.rightMost = tile;
-    }
-    function flipNumbers(tile) {
-        var temp = tile.leftNumber;
-        tile.leftNumber = tile.rightNumber;
-        tile.rightNumber = temp;
+        board.leftMost = tile.tileKey;
+        board.rightMost = tile.tileKey;
     }
     function addTileToTheRight(board, playedTile) {
-        var rightNumber = board.rightMost.rightNumber;
-        if (playedTile.leftNumber !== rightNumber) {
-            if (playedTile.rightNumber !== rightNumber) {
-                throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the right when right tile is " + JSON.stringify(board.rightMost));
-            }
-            else {
-                flipNumbers(playedTile);
-            }
-        }
+        var rightTileKey = board.rightMost;
         var currentTile = board.root;
-        while (currentTile.rightNumber != board.rightMost.rightNumber && currentTile.leftNumber != board.rightMost.leftNumber) {
+        while (currentTile.tileKey !== rightTileKey) {
             currentTile = currentTile.rightTile;
         }
         currentTile.rightTile = playedTile;
-        board.rightMost = playedTile;
+        board.rightMost = playedTile.tileKey;
     }
     function addTileToTheLeft(board, playedTile) {
-        var leftNumber = board.leftMost.leftNumber;
-        if (playedTile.rightNumber !== leftNumber) {
-            if (playedTile.leftNumber !== leftNumber) {
-                throw new Error("Cannot play tile " + JSON.stringify(playedTile) + " on the left when left tile is " + JSON.stringify(board.leftMost));
-            }
-            else {
-                flipNumbers(playedTile);
-            }
-        }
+        var leftTileKey = board.leftMost;
         var currentTile = board.root;
-        while (currentTile.rightNumber != board.leftMost.rightNumber && currentTile.leftNumber != board.leftMost.leftNumber) {
+        while (currentTile.tileKey !== leftTileKey) {
             currentTile = currentTile.leftTile;
         }
         currentTile.leftTile = playedTile;
-        board.leftMost = playedTile;
+        board.leftMost = playedTile.tileKey;
     }
     function addTileToHand(player, tileKey) {
         player.hand.push(tileKey);
@@ -150,7 +129,7 @@ var gameLogic;
         }
         return points;
     }
-    function createMoveEndGame(allPlayers, state) {
+    function createMoveEndGame(allPlayers, state, delta) {
         var operations = [], remainingPoints = [], numberOfPlayers = allPlayers.length, totalPoints = 0;
         for (var i = 0; i < numberOfPlayers; i++) {
             remainingPoints[i] = getRemainingPoints(allPlayers[i], state);
@@ -161,6 +140,7 @@ var gameLogic;
             endScores[i] = totalPoints - remainingPoints[i];
         }
         operations.push({ endMatch: { endMatchScores: endScores } });
+        operations.push({ set: { key: 'delta', value: delta } });
         return operations;
     }
     gameLogic.createMoveEndGame = createMoveEndGame;
@@ -170,12 +150,13 @@ var gameLogic;
         return operations;
     }
     gameLogic.createMovePass = createMovePass;
-    function createMoveReveal(numberOfPlayers, turnIndexBeforeMove) {
+    function createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta) {
         var operations = [], playerIndexes = getVisibilityForAllPlayers(numberOfPlayers);
         for (var i = 0; i < 28; i++) {
             operations.push({ setVisibility: { key: 'tile' + i, visibleToPlayerIndexes: playerIndexes } });
         }
         operations.push({ setTurn: { turnIndex: turnIndexBeforeMove } });
+        operations.push({ set: { key: 'delta', value: delta } });
         return operations;
     }
     gameLogic.createMoveReveal = createMoveReveal;
@@ -192,12 +173,12 @@ var gameLogic;
         visibility = { key: playedTileKey, visibleToPlayerIndexes: [turnIndexBeforeMove] };
         allPlayers[turnIndexBeforeMove] = player;
         operations = getGenericMove(turnIndexBeforeMove, board, delta, visibility, allPlayers);
-        operations.concat([{ set: { key: 'house', value: house } }]);
+        operations = operations.concat([{ set: { key: 'house', value: house } }]);
         return operations;
     }
     gameLogic.createMoveBuy = createMoveBuy;
-    function createMovePlay(board, delta, playedTile, player, allPlayers, playedTileKey, turnIndexBeforeMove, play) {
-        var operations, visibility, numberOfPlayers = allPlayers.length;
+    function createMovePlay(board, delta, player, allPlayers, playedTileKey, turnIndexBeforeMove, play) {
+        var operations, visibility, numberOfPlayers = allPlayers.length, playedTile = { tileKey: playedTileKey };
         //Check if someone has already won the game
         for (var i = 0; i < numberOfPlayers; i++) {
             if (getWinner(allPlayers[i]) === allPlayers[i].id) {
@@ -221,23 +202,23 @@ var gameLogic;
             return getGenericMove(nextTurn, board, delta, visibility, allPlayers);
         }
         else {
-            return createMoveReveal(numberOfPlayers, turnIndexBeforeMove);
+            delta.play = Play.REVEAL;
+            return createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta);
         }
     }
     gameLogic.createMovePlay = createMovePlay;
     /**
     * Returns the move that should be performed when player with index turnIndexBeforeMove makes a move.
     */
-    function createMove(state, turnIndexBeforeMove) {
-        var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove, playedTileKey = !(state.delta) ? undefined : state.delta.tileKey, play = state.delta === undefined ? undefined : state.delta.play, players = state.players, house = state.house, board = state.board;
+    function createMove(state, turnIndexBeforeMove, delta) {
+        var operations, visibility, boardAfterMove, playersAfterMove, playerAfterMove, houseAfterMove, playedTileKey = !(delta) ? undefined : delta.tileKey, play = delta === undefined ? undefined : delta.play, players = state.players, house = state.house, board = state.board;
         boardAfterMove = angular.copy(board);
         playersAfterMove = angular.copy(players);
         playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
         houseAfterMove = angular.copy(house);
-        var delta = { tileKey: playedTileKey, play: play };
         //If there was no tile on the board before, this is the first tile
         if (Play.LEFT === play || Play.RIGHT === play) {
-            return createMovePlay(board, delta, state[playedTileKey], playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play);
+            return createMovePlay(boardAfterMove, delta, playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play);
         }
         else if (Play.BUY === play) {
             return createMoveBuy(houseAfterMove, playedTileKey, playerAfterMove, playersAfterMove, boardAfterMove, delta, turnIndexBeforeMove);
@@ -246,10 +227,10 @@ var gameLogic;
             return createMovePass(turnIndexBeforeMove, playersAfterMove.length);
         }
         else if (Play.REVEAL === play) {
-            return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove);
+            return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove, delta);
         }
         else if (Play.END === play) {
-            return createMoveEndGame(playersAfterMove, state);
+            return createMoveEndGame(playersAfterMove, state, delta);
         }
         else {
             throw new Error("Unknown play");
@@ -270,21 +251,6 @@ var gameLogic;
         logDiffToConsole(o1[k], o2[k]);
       }
     }*/
-    function hasTileWithNumbers(state, turnIndex, firstNumber, secondNumber) {
-        var player = state.players[turnIndex];
-        for (var i = 0; i < player.hand.length; i++) {
-            var tile = state[player.hand[i]];
-            if ((tile.leftNumber === firstNumber && tile.rightNumber === secondNumber) || (tile.rightNumber === firstNumber && tile.leftNumber === secondNumber)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    gameLogic.hasTileWithNumbers = hasTileWithNumbers;
-    function canStartGame(state, turnIndex, value) {
-        return hasTileWithNumbers(state, turnIndex, value, value);
-    }
-    gameLogic.canStartGame = canStartGame;
     /**
        * Check if the move is OK.
        *
@@ -304,7 +270,9 @@ var gameLogic;
         *    If the stateBeforeMove is not empty, then the board should have
         *    one or more dominoes.
         ********************************************************************/
-        console.error("isMoveOk(): Calling is move ok. State is " + JSON.stringify(stateBeforeMove));
+        console.error("isMoveOk(): Calling is move ok");
+        console.error("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
+        console.error("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
         try {
             if (numberOfPlayers > 4) {
                 throw Error("A maximum of 4 players are allowed for this game");
@@ -313,8 +281,11 @@ var gameLogic;
             if (!params.stateBeforeMove || !params.stateBeforeMove.board) {
                 expectedMove = getInitialMove(numberOfPlayers);
             }
+            else if (move[0].endMatch !== undefined) {
+                return true;
+            }
             else {
-                expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove);
+                expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta);
             }
             //  console.log("ACTUAL: " + JSON.stringify(move));
             //  console.log("---------------------")
