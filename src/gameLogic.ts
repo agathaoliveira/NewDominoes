@@ -228,6 +228,41 @@ module gameLogic {
       }
   }
 
+  export function canMakeAPlay(tileKey: string, board: IBoard, state: IState, isRight: boolean):boolean
+  {
+    if (!board.root)
+    {
+      return state[tileKey].leftNumber === state[tileKey].rightNumber;
+    }
+
+    var parent:ITile = board.root;
+    var flipped: boolean = false;
+    var i = 1;
+    var tile: ITile = isRight ? board.root.rightTile : board.root.leftTile;
+
+    while (tile.rightTile !== undefined)
+    {
+      parent = tile;
+      tile = isRight ? parent.rightTile : parent.leftTile;
+
+      if (!flipped && parent.leftNumber === tile.rightNumber)//R L
+      {
+        flipped = false;
+      }
+      else if (!flipped){flipped = true;}
+      else if (parent.rightNumber === tile.rightNumber){ flipped = false; }//L R
+      else { flipped = true; }
+
+    }
+
+    tile = tile === undefined ? undefined : state[tile.tileKey];
+    var playedTile:ITile = state[playedTileKey];
+
+    if (flipped){ return tile.rightNumber === playedTile.rightNumber || tile.rightNumber === playedTile.leftNumber; }
+    else{ return tile.leftNumber === playedTile.rightNumber || tile.leftNumber === playedTile.leftNumber; }
+
+  }
+
   export function createMoveEndGame(allPlayers: IPlayer[], state: IState, delta: BoardDelta): IMove
   {
     var operations: IMove = [],
@@ -262,7 +297,7 @@ module gameLogic {
     return operations;
   }
 
-  export function createMoveReveal(numberOfPlayers: number, turnIndexBeforeMove: number, delta: BoardDelta):IMove
+  export function createMoveReveal(numberOfPlayers: number, turnIndexBeforeMove: number, delta: BoardDelta, players: IPlayer[]):IMove
   {
     var operations: IMove = [],
     playerIndexes = getVisibilityForAllPlayers(numberOfPlayers);
@@ -274,6 +309,7 @@ module gameLogic {
 
     operations.push({setTurn: {turnIndex: turnIndexBeforeMove}});
     operations.push({set: {key: 'delta', value: delta}});
+    operations.push({set: {key: 'players', value: players}});
     return operations;
   }
 
@@ -329,7 +365,7 @@ module gameLogic {
     else if (play === Play.RIGHT)
     {
       var tile: ITile = stateAfterMove[playedTileKey];
-      var rightTile: ITile = stateAfterMove[playedTileKey];
+      var rightTile: ITile = stateAfterMove[board.rightMost];
 
       validateTiles(tile, rightTile);
 
@@ -338,7 +374,7 @@ module gameLogic {
     else //Play.LEFT
     {
       var tile: ITile = stateAfterMove[playedTileKey];
-      var leftTile: ITile = stateAfterMove[playedTileKey];
+      var leftTile: ITile = stateAfterMove[board.leftMost];
 
       validateTiles(tile, leftTile);
 
@@ -347,18 +383,18 @@ module gameLogic {
 
     removeTileFromHand(player, playedTileKey);
 
+    allPlayers[turnIndexBeforeMove] = player;
+
     if (getNumberOfRemainingTiles(player) !== 0)
     {
       visibility =  {key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(numberOfPlayers)};
       var nextTurn = (turnIndexBeforeMove + 1) % numberOfPlayers;
-      allPlayers[turnIndexBeforeMove] = player;
-
       return getGenericMove(nextTurn, board, delta, visibility, allPlayers);
     }
     else
     {
       delta.play = Play.REVEAL;
-      return createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta);
+      return createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta, allPlayers);
     }
   }
 
@@ -399,7 +435,7 @@ module gameLogic {
     }
     else if (Play.REVEAL === play)
     {
-      return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove, delta);
+      return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove, delta, stateAfterMove.players);
     }
     else if (Play.END === play)
     {
@@ -448,9 +484,9 @@ module gameLogic {
     *    one or more dominoes.
     ********************************************************************/
 
-    console.error("isMoveOk(): Calling is move ok");
-    console.error("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
-    console.error("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
+    console.log("isMoveOk(): Calling is move ok");
+    console.log("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
+    console.log("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
 
     try {
       if (numberOfPlayers > 4)

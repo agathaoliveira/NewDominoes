@@ -135,6 +135,40 @@ var gameLogic;
             throw new Error("Cannot place tile at the board! Numbers are invalid.");
         }
     }
+    function canMakeAPlay(tileKey, board, state, isRight) {
+        if (!board.root) {
+            return state[tileKey].leftNumber === state[tileKey].rightNumber;
+        }
+        var parent = board.root;
+        var flipped = false;
+        var i = 1;
+        var tile = isRight ? board.root.rightTile : board.root.leftTile;
+        while (tile.rightTile !== undefined) {
+            parent = tile;
+            tile = isRight ? parent.rightTile : parent.leftTile;
+            if (!flipped && parent.leftNumber === tile.rightNumber) {
+                flipped = false;
+            }
+            else if (!flipped) {
+                flipped = true;
+            }
+            else if (parent.rightNumber === tile.rightNumber) {
+                flipped = false;
+            } //L R
+            else {
+                flipped = true;
+            }
+        }
+        tile = tile === undefined ? undefined : state[tile.tileKey];
+        var playedTile = state[playedTileKey];
+        if (flipped) {
+            return tile.rightNumber === playedTile.rightNumber || tile.rightNumber === playedTile.leftNumber;
+        }
+        else {
+            return tile.leftNumber === playedTile.rightNumber || tile.leftNumber === playedTile.leftNumber;
+        }
+    }
+    gameLogic.canMakeAPlay = canMakeAPlay;
     function createMoveEndGame(allPlayers, state, delta) {
         var operations = [], remainingPoints = [], numberOfPlayers = allPlayers.length, totalPoints = 0;
         for (var i = 0; i < numberOfPlayers; i++) {
@@ -156,13 +190,14 @@ var gameLogic;
         return operations;
     }
     gameLogic.createMovePass = createMovePass;
-    function createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta) {
+    function createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta, players) {
         var operations = [], playerIndexes = getVisibilityForAllPlayers(numberOfPlayers);
         for (var i = 0; i < 28; i++) {
             operations.push({ setVisibility: { key: 'tile' + i, visibleToPlayerIndexes: playerIndexes } });
         }
         operations.push({ setTurn: { turnIndex: turnIndexBeforeMove } });
         operations.push({ set: { key: 'delta', value: delta } });
+        operations.push({ set: { key: 'players', value: players } });
         return operations;
     }
     gameLogic.createMoveReveal = createMoveReveal;
@@ -200,26 +235,26 @@ var gameLogic;
         }
         else if (play === Play.RIGHT) {
             var tile = stateAfterMove[playedTileKey];
-            var rightTile = stateAfterMove[playedTileKey];
+            var rightTile = stateAfterMove[board.rightMost];
             validateTiles(tile, rightTile);
             addTileToTheRight(board, playedTile);
         }
         else {
             var tile = stateAfterMove[playedTileKey];
-            var leftTile = stateAfterMove[playedTileKey];
+            var leftTile = stateAfterMove[board.leftMost];
             validateTiles(tile, leftTile);
             addTileToTheLeft(board, playedTile);
         }
         removeTileFromHand(player, playedTileKey);
+        allPlayers[turnIndexBeforeMove] = player;
         if (getNumberOfRemainingTiles(player) !== 0) {
             visibility = { key: playedTileKey, visibleToPlayerIndexes: getVisibilityForAllPlayers(numberOfPlayers) };
             var nextTurn = (turnIndexBeforeMove + 1) % numberOfPlayers;
-            allPlayers[turnIndexBeforeMove] = player;
             return getGenericMove(nextTurn, board, delta, visibility, allPlayers);
         }
         else {
             delta.play = Play.REVEAL;
-            return createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta);
+            return createMoveReveal(numberOfPlayers, turnIndexBeforeMove, delta, allPlayers);
         }
     }
     gameLogic.createMovePlay = createMovePlay;
@@ -243,7 +278,7 @@ var gameLogic;
             return createMovePass(turnIndexBeforeMove, playersAfterMove.length);
         }
         else if (Play.REVEAL === play) {
-            return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove, delta);
+            return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove, delta, stateAfterMove.players);
         }
         else if (Play.END === play) {
             return createMoveEndGame(playersAfterMove, state, delta);
@@ -286,9 +321,9 @@ var gameLogic;
         *    If the stateBeforeMove is not empty, then the board should have
         *    one or more dominoes.
         ********************************************************************/
-        console.error("isMoveOk(): Calling is move ok");
-        console.error("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
-        console.error("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
+        console.log("isMoveOk(): Calling is move ok");
+        console.log("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
+        console.log("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
         try {
             if (numberOfPlayers > 4) {
                 throw Error("A maximum of 4 players are allowed for this game");

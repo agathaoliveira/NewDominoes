@@ -7,6 +7,7 @@ var game;
     var turnIndex = null;
     var treeSources = [];
     var treeClasses = [];
+    var tileOrientation = [];
     var gameArea = document.getElementById("gameArea");
     var currentPlayerArea = document.getElementById("currentPlayer");
     var isUndefinedOrNull = function (val) {
@@ -102,7 +103,7 @@ var game;
             state.delta = { play: play, tileKey: tileKey };
             var move = gameLogic.createMove(state, turnIndex, { play: play, tileKey: tileKey }, state);
             canMakeMove = false; // to prevent making another move
-            log.error("placeTileOnTree(): Making move to place tile on tree. Calling makeMove with move " + JSON.stringify(move));
+            log.info("placeTileOnTree(): Making move to place tile on tree. Calling makeMove with move " + JSON.stringify(move));
             $rootScope.selectedTile = undefined;
             gameService.makeMove(move);
         }
@@ -143,7 +144,6 @@ var game;
             var delta = { play: Play.BUY, tileKey: state.house.hand[tileIndex] };
             var move = gameLogic.createMove(state, turnIndex, delta, state);
             canMakeMove = false; // to prevent making another move
-            console.error("makeBuyPlay(): Calling makeMove");
             gameService.makeMove(move);
         }
         catch (e) {
@@ -214,16 +214,39 @@ var game;
         $rootScope.tile = state.house.hand[tileIndex];
     }
     game.registerSelectedHouseTile = registerSelectedHouseTile;
-    function getImageClass(tileLevel, tree) {
-        var board = state.board;
-        if (!!treeClasses[tree] && !!treeClasses[tree][tileLevel]) {
-            return treeClasses[tree][tileLevel];
+    function getTreeBefore(tree) {
+        if (tree === 1) {
+            return 0;
         }
+        if (tree === 6) {
+            return 1;
+        }
+        if (tree === 7) {
+            return 6;
+        }
+        if (tree === 2) {
+            return 0;
+        }
+        if (tree === 3) {
+            return 2;
+        }
+        if (tree === 4) {
+            return 3;
+        }
+        if (tree === 5) {
+            return 4;
+        }
+    }
+    function getTileOrientation(tileLevel, tree) {
+        if (!!tileOrientation[tree] && !!tileOrientation[tree][tileLevel]) {
+            return tileOrientation[tree][tileLevel];
+        }
+        var board = state.board;
         if (board.leftMost === board.root.tileKey && board.rightMost === board.root.tileKey) {
-            var imageClass = "rootTile";
-            treeClasses[tree] = [];
-            treeClasses[tree][tileLevel] = imageClass;
-            return imageClass;
+            var orientation = "regular";
+            tileOrientation[tree] = [];
+            tileOrientation[tree][tileLevel] = orientation;
+            return orientation;
         }
         var parent = board.root;
         //Check if tile at level (i) exists for right or left tree
@@ -239,10 +262,14 @@ var game;
         parent = parent === undefined ? undefined : state[parent.tileKey];
         //parent was flipped
         var parentFlipped = false;
-        if (!!treeClasses[tree]) {
-            parentFlipped = treeClasses[tree][tileLevel - 1] === getClassForTree(tree, true);
+        if (!!tileOrientation[tree]) {
+            parentFlipped = tileOrientation[tree][tileLevel - 1] === "flipped";
         }
-        if (tile !== undefined && !isRightTree(tree)) {
+        else {
+            var previousTree = getTreeBefore(tree);
+            parentFlipped = tileOrientation[previousTree][tileLevel - 1] === "flipped";
+        }
+        if (tile !== undefined) {
             if (!parentFlipped && parent.leftNumber >= parent.rightNumber) {
                 if (tile.rightNumber === parent.leftNumber && tile.rightNumber > tile.leftNumber) {
                     flipped = true;
@@ -276,35 +303,20 @@ var game;
                 }
             }
         }
-        else if (tile !== undefined) {
-            if (isHighLow(tree)) {
-                if (!parentFlipped && parent.leftNumber > parent.rightNumber) {
-                    if (tile.rightNumber === parent.leftNumber && tile.rightNumber > tile.leftNumber) {
-                        flipped = true;
-                    }
-                    else if (tile.leftNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) {
-                        flipped = true;
-                    }
-                }
-                else if (!parentFlipped && parent.rightNumber > parent.leftNumber) {
-                    if (tile.rightNumber === parent.rightNumber && tile.rightNumber > tile.leftNumber) {
-                        flipped = true;
-                    }
-                    else if (tile.leftNumber === parent.rightNumber && tile.leftNumber > tile.rightNumber) {
-                        flipped = true;
-                    }
-                }
-                else if (parentFlipped && parent.leftNumber > parent.rightNumber) {
-                    if (tile.rightNumber === parent.rightNumber && tile.rightNumber > tile.leftNumber) {
-                        flipped = true;
-                    }
-                    else if (tile.leftNumber === parent.rightNumber && tile.leftNumber > tile.rightNumber) {
-                        flipped = true;
-                    }
-                }
-            }
+        var orientation = flipped ? "flipped" : "regular";
+        if (!tileOrientation[tree]) {
+            tileOrientation[tree] = [];
         }
-        var imageClass = getClassForTree(tree, flipped);
+        tileOrientation[tree][tileLevel] = orientation;
+        return orientation;
+    }
+    game.getTileOrientation = getTileOrientation;
+    function getImageClass(tileLevel, tree) {
+        if (!!treeClasses[tree] && !!treeClasses[tree][tileLevel]) {
+            return treeClasses[tree][tileLevel];
+        }
+        var orientation = getTileOrientation(tileLevel, tree);
+        var imageClass = getClassForTree(tree, orientation === "flipped");
         if (!treeClasses[tree]) {
             treeClasses[tree] = [];
         }
@@ -313,7 +325,16 @@ var game;
     }
     game.getImageClass = getImageClass;
     function getClassForTree(tree, flipped) {
-        if (tree === 1 || tree === 2) {
+        if (tree === 0) {
+            return "rootTile";
+        }
+        if (tree === 1) {
+            if (flipped) {
+                return "horizontalTile";
+            }
+            return "horizontalTileFlip";
+        }
+        if (tree === 2) {
             if (flipped) {
                 return "horizontalTileFlip";
             }
@@ -328,7 +349,25 @@ var game;
             }
         }
         if (tree === 5) {
-            if (flipped) { }
+            if (flipped) {
+                return "tree5Tile";
+            }
+            else {
+                return "tree5TileFlip";
+            }
+        }
+        if (tree === 6) {
+            if (flipped) {
+                return "maxWidthHeightTile";
+            }
+            else {
+                return "maxWidthHeightTileFlip";
+            }
+        }
+        if (tree === 7) {
+            if (flipped) {
+                return "tree5TileFlip";
+            }
             else {
                 return "tree5Tile";
             }
@@ -362,10 +401,6 @@ var game;
         return image;
     }
     game.getImageSource = getImageSource;
-    //3 is not
-    function isHighLow(tree) {
-        return (tree === 2 || tree === 1);
-    }
     function isRightTree(tree) {
         return (tree === 0 || tree === 1 || tree === 6 || tree === 7 || tree === 8);
     }

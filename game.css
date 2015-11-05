@@ -48,8 +48,8 @@
 
 .currentPlayerTile{
   height: 100%;
-  width: 6%;
-  margin: 0 0 2% 2%;
+  width: 4%;
+  margin: 0 0 1% 1%;
 }
 
 .game{
@@ -136,7 +136,7 @@
   margin: 0 3% 0 1%;
 }
 
-.tree5TileFlipped{
+.tree5TileFlip{
   width: 3.5%;
   height: 100%;
   -webkit-transform-origin: 65% 37%;
