@@ -42,8 +42,28 @@ var game;
         });
     }
     function sendComputerMove() {
-        log.info("sendComputerMove(): Calling make move for computer move");
-        gameService.makeMove(aiService.createComputerMove(turnIndex, state));
+        var leftNumber = getBoardNumber(false);
+        var rightNumber = getBoardNumber(true);
+        log.info("sendComputerMove(): Calling make move for computer move for left number: " + leftNumber + " and right number " + rightNumber);
+        gameService.makeMove(aiService.createComputerMove(turnIndex, state, leftNumber, rightNumber));
+    }
+    function getBoardNumber(isRight) {
+        var board = state.board;
+        if (board === undefined) {
+            return undefined;
+        }
+        if (isRight) {
+            var rightLevel = getTileLevel(true, board.rightMost);
+            var rightOrientation = rightLevel === -1 ? undefined : getTileOrientation(rightLevel, 7);
+            var rightNumber = rightOrientation === undefined ? undefined : rightOrientation === "regular" ? state[board.rightMost].rightNumber : state[board.rightMost].leftNumber;
+            return rightNumber;
+        }
+        else {
+            var leftLevel = getTileLevel(false, board.leftMost);
+            var leftOrientation = leftLevel === -1 ? undefined : getTileOrientation(leftLevel, 5);
+            var leftNumber = leftOrientation === undefined ? undefined : leftOrientation === "regular" ? state[board.leftMost].rightNumber : state[board.leftMost].leftNumber;
+            return leftNumber;
+        }
     }
     function updateUI(params) {
         animationEnded = false;
@@ -54,6 +74,7 @@ var game;
             var move = gameLogic.getInitialMove(params.numberOfPlayers);
             log.info("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
             gameService.makeMove(move);
+            return;
         }
         canMakeMove = params.turnIndexAfterMove >= 0 &&
             params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
@@ -65,6 +86,7 @@ var game;
             state.delta = delta;
             var move = gameLogic.createMove(state, params.turnIndexAfterMove, delta, state);
             gameService.makeMove(move);
+            return;
         }
         else if (!!state && !!state.delta && state.delta.play === Play.END) {
             $rootScope.hasGameEnded = true;
@@ -77,6 +99,7 @@ var game;
                 var delta = { play: Play.REVEAL };
                 var move = gameLogic.createMove(state, params.turnIndexAfterMove, delta, state);
                 gameService.makeMove(move);
+                return;
             }
         }
         // Is it the computer's turn?
@@ -88,12 +111,13 @@ var game;
             // We calculate the AI move only after the animation finishes,
             // because if we call aiService now
             // then the animation will be paused until the javascript finishes.
-            if (!state.delta) {
-                // This is the first move in the match, so
-                // there is not going to be an animation, so
-                // call sendComputerMove() now (can happen in ?onlyAIs mode)
-                sendComputerMove();
-            }
+            // if (!state.delta) {
+            //   // This is the first move in the match, so
+            //   // there is not going to be an animation, so
+            //   // call sendComputerMove() now (can happen in ?onlyAIs mode)
+            //
+            // }
+            sendComputerMove();
         }
     }
     function wasPassMove(testState) {
@@ -102,29 +126,6 @@ var game;
         }
         return false;
     }
-    // function canMakeAPlay(state: IState, isRight: boolean, parentOrientation: string, parentTileKey: string, tileKey: string):boolean
-    // {
-    //   var board:IBoard = state.board
-    //
-    //   if (!!board && !board.root)
-    //   {
-    //     return state[tileKey].leftNumber === state[tileKey].rightNumber;
-    //   }
-    //
-    //   var parent: ITile = state[parentTileKey];
-    //   var tile: ITile = state[playedTileKey];
-    //   var flipped: boolean = parentOrientation === "flipped";
-    //   var numberToMatch:number;
-    //   if (flipped){
-    //     numberToMatch = isRight ? parent.rightNumber : parent.leftNumber;
-    //   }
-    //   else{
-    //     numberToMatch = isRight ? parent.leftNumber : parent.rightNumber;
-    //   }
-    //
-    //   return tile.leftNumber === numberToMatch || tile.rightNumber === numberToMatch;
-    //
-    // }
     function passPlay() {
         log.info("Tried to pass");
         if (!canMakeMove) {
@@ -292,6 +293,23 @@ var game;
             return 4;
         }
     }
+    function getTileLevel(isRight, tileKey) {
+        if (state.board === undefined || state.board.root === undefined) {
+            return -1;
+        }
+        var board = state.board;
+        if (board.root.tileKey === tileKey) {
+            return 0;
+        }
+        var i = 1;
+        var tile = isRight ? board.root.rightTile : board.root.leftTile;
+        while (tile.tileKey != tileKey) {
+            i = i + 1;
+            tile = isRight ? tile.rightTile : tile.leftTile;
+        }
+        return i;
+    }
+    game.getTileLevel = getTileLevel;
     function getTileOrientation(tileLevel, tree) {
         if (!!tileOrientation[tree] && !!tileOrientation[tree][tileLevel]) {
             return tileOrientation[tree][tileLevel];

@@ -45,9 +45,35 @@ module game {
   }
 
   function sendComputerMove() {
-    log.info("sendComputerMove(): Calling make move for computer move");
+    var leftNumber = getBoardNumber(false);
+    var rightNumber = getBoardNumber(true);
+    log.info("sendComputerMove(): Calling make move for computer move for left number: " + leftNumber + " and right number " + rightNumber);
     gameService.makeMove(
-        aiService.createComputerMove(turnIndex, state));
+        aiService.createComputerMove(turnIndex, state, leftNumber, rightNumber));
+  }
+
+  function getBoardNumber(isRight: boolean): number
+  {
+    let board = state.board;
+
+    if (board === undefined) { return undefined; }
+
+    if (isRight)
+    {
+      var rightLevel = getTileLevel(true, board.rightMost);
+      var rightOrientation = rightLevel === -1 ? undefined : getTileOrientation(rightLevel, 7);
+      var rightNumber = rightOrientation === undefined ? undefined : rightOrientation === "regular" ? state[board.rightMost].rightNumber : state[board.rightMost].leftNumber;
+
+      return rightNumber;
+    }
+    else
+    {
+      var leftLevel = getTileLevel(false, board.leftMost);
+      var leftOrientation = leftLevel === -1 ? undefined : getTileOrientation(leftLevel, 5);
+      var leftNumber = leftOrientation === undefined ? undefined : leftOrientation === "regular" ? state[board.leftMost].rightNumber : state[board.leftMost].leftNumber;
+
+      return leftNumber;
+    }
   }
 
   function updateUI(params: IUpdateUI): void {
@@ -61,6 +87,7 @@ module game {
       let move = gameLogic.getInitialMove(params.numberOfPlayers);
       log.info("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
       gameService.makeMove(move);
+      return;
     }
     canMakeMove = params.turnIndexAfterMove >= 0 && // game is ongoing
       params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
@@ -75,6 +102,7 @@ module game {
       state.delta = delta;
       let move = gameLogic.createMove(state, params.turnIndexAfterMove, delta, state);
       gameService.makeMove(move);
+      return;
     }
     else if (!!state && !!state.delta && state.delta.play === Play.END)
     {
@@ -91,6 +119,7 @@ module game {
         let delta = { play: Play.REVEAL };
         let move = gameLogic.createMove(state, params.turnIndexAfterMove, delta, state);
         gameService.makeMove(move);
+        return ;
       }
     }
 
@@ -103,12 +132,13 @@ module game {
       // We calculate the AI move only after the animation finishes,
       // because if we call aiService now
       // then the animation will be paused until the javascript finishes.
-      if (!state.delta) {
-        // This is the first move in the match, so
-        // there is not going to be an animation, so
-        // call sendComputerMove() now (can happen in ?onlyAIs mode)
-        sendComputerMove();
-      }
+      // if (!state.delta) {
+      //   // This is the first move in the match, so
+      //   // there is not going to be an animation, so
+      //   // call sendComputerMove() now (can happen in ?onlyAIs mode)
+      //
+      // }
+      sendComputerMove();
     }
   }
 
@@ -121,30 +151,6 @@ module game {
 
     return false;
   }
-
-  // function canMakeAPlay(state: IState, isRight: boolean, parentOrientation: string, parentTileKey: string, tileKey: string):boolean
-  // {
-  //   var board:IBoard = state.board
-  //
-  //   if (!!board && !board.root)
-  //   {
-  //     return state[tileKey].leftNumber === state[tileKey].rightNumber;
-  //   }
-  //
-  //   var parent: ITile = state[parentTileKey];
-  //   var tile: ITile = state[playedTileKey];
-  //   var flipped: boolean = parentOrientation === "flipped";
-  //   var numberToMatch:number;
-  //   if (flipped){
-  //     numberToMatch = isRight ? parent.rightNumber : parent.leftNumber;
-  //   }
-  //   else{
-  //     numberToMatch = isRight ? parent.leftNumber : parent.rightNumber;
-  //   }
-  //
-  //   return tile.leftNumber === numberToMatch || tile.rightNumber === numberToMatch;
-  //
-  // }
 
   export function passPlay():void
   {
@@ -325,6 +331,29 @@ module game {
     if (tree === 3) { return 2; }
     if (tree === 4) { return 3; }
     if (tree === 5) { return 4; }
+  }
+
+  export function getTileLevel(isRight: boolean, tileKey: string): number
+  {
+    if (state.board === undefined || state.board.root === undefined) { return -1; }
+
+    let board = state.board;
+
+    if (board.root.tileKey === tileKey)
+    {
+      return 0;
+    }
+
+    var i = 1;
+    var tile: ITile = isRight ? board.root.rightTile : board.root.leftTile;
+
+    while (tile.tileKey != tileKey)
+    {
+      i = i + 1;
+      tile = isRight ? tile.rightTile : tile.leftTile;
+    }
+
+    return i;
   }
 
   export function getTileOrientation(tileLevel: number, tree: number):string{

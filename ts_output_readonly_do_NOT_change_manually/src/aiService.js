@@ -6,7 +6,7 @@ var aiService;
      * and it has either a millisecondsLimit or maxDepth field:
      * millisecondsLimit is a time limit, and maxDepth is a depth limit.
      */
-    function createComputerMove(playerIndex, stateBeforeMove) {
+    function createComputerMove(playerIndex, stateBeforeMove, leftNumber, rightNumber) {
         // We use alpha-beta search, where the search states are TicTacToe moves.
         // Recal that a TicTacToe move has 3 operations:
         // 0) endMatch or setTurn
@@ -22,7 +22,7 @@ var aiService;
                 play = Play.RIGHT;
             }
             else {
-                play = getPlayBasedOnBoardTiles(stateBeforeMove[hand[i]], board.leftMost.leftNumber, board.rightMost.rightNumber);
+                play = getPlayBasedOnBoardTiles(stateBeforeMove[hand[i]], leftNumber, rightNumber);
             }
             if (play !== undefined) {
                 key = hand[i];
@@ -40,7 +40,7 @@ var aiService;
         }
         var delta = play !== Play.PASS ? { tileKey: key, play: play } : { play: play };
         stateBeforeMove.delta = delta;
-        var move = gameLogic.createMove(stateBeforeMove, playerIndex);
+        var move = gameLogic.createMove(stateBeforeMove, playerIndex, delta, stateBeforeMove);
         return move;
     }
     aiService.createComputerMove = createComputerMove;
