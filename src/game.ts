@@ -569,8 +569,11 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
   $rootScope['game'] = game;
   translate.setLanguage('en',  {
     RULES_OF_TICTACTOE: "Rules of Dominoes",
-    RULES_SLIDE1: "You and your opponent take turns to mark the grid in an empty spot. The first mark is X, then O, then X, then O, etc.",
-    RULES_SLIDE2: "The first to mark a whole row, column or diagonal wins.",
+    RULES_SLIDE1: "This game is played according to the draw rules. The first player to join the game who has a double places the first domino. If you don't have a double tile, click on pass",
+    RULES_SLIDE2: "Each player adds a domino to an open end of the layout, if he/she can. The layour flows left/right as necessary.",
+    RULES_SLIDE3: "If a player is unable to make a move, he/she must draw dominoes from the boneyard until he can make a move. If there are no dominoes left, then the player must pass.",
+    RULES_SLIDE4: "A game ends either when a player plays all his/her tiles, or when a game is blocked. A game is blocked when no player is able to add another tile to the layout.",
+    RULES_SLIDE5: "When a hand ends, the player with the lightest hand (i.e. the fewest number of dots on their dominoes) wins the number of sum total of points in all of his opponents hands (minus the points in his own hand, if any)",
     CLOSE: "Close"
   });
   game.init();

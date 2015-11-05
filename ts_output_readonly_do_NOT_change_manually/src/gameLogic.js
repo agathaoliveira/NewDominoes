@@ -136,14 +136,23 @@ var gameLogic;
         }
     }
     function createMoveEndGame(allPlayers, state, delta) {
-        var operations = [], remainingPoints = [], numberOfPlayers = allPlayers.length, totalPoints = 0;
+        var operations = [], remainingPoints = [], numberOfPlayers = allPlayers.length, min = 336, minPlayer = -1, totalPoints = 0;
         for (var i = 0; i < numberOfPlayers; i++) {
             remainingPoints[i] = getRemainingPoints(allPlayers[i], state);
             totalPoints = totalPoints + remainingPoints[i];
+            if (remainingPoints[i] < min) {
+                min = remainingPoints[i];
+                minPlayer = i;
+            }
         }
         var endScores = [];
         for (var i = 0; i < numberOfPlayers; i++) {
-            endScores[i] = totalPoints - remainingPoints[i];
+            if (i === minPlayer) {
+                endScores[i] = totalPoints - 2 * remainingPoints[i];
+            }
+            else {
+                endScores[i] = 0;
+            }
         }
         for (var i = 0; i < 28; i++) {
             operations.push({ set: { key: 'tile' + i, value: state['tile' + i] } });

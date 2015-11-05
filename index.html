@@ -97,7 +97,7 @@
     <div class="opponent" ng-repeat="player in game.getOpponentIds(yourPlayerIndex)" style="width: {{100 / game.getNumberOfPlayers()}}%;height:100%">
       <img src="imgs/player/image1.svg" class="opponentIcon">
       <h5 ng-if="hasGameEnded" class="scoreText">Score: {{ game.getFinalScore(player) }}</h5>
-      <img ng-repeat="tile in game.getNumberOfTilesForPlayer(player)" src="{{ game.getTileImageSourceForPlayer(player, tile) }}"  class="opponentTile">
+      <img ng-repeat="tile in game.getNumberOfTilesForPlayer(player)" src="{{ game.getTileImageSourceForPlayer(player, tile) }}" class="opponentTile">
     </div>
   </div>
 

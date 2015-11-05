@@ -233,19 +233,32 @@ module gameLogic {
     var operations: IMove = [],
     remainingPoints: number[] = [],
     numberOfPlayers: number = allPlayers.length,
+    min: number = 336,
+    minPlayer: number = -1,
     totalPoints: number = 0;
 
     for (var i = 0; i < numberOfPlayers; i++)
     {
       remainingPoints[i] = getRemainingPoints(allPlayers[i], state);
       totalPoints = totalPoints + remainingPoints[i];
+      if (remainingPoints[i] < min)
+      {
+        min = remainingPoints[i];
+        minPlayer = i;
+      }
     }
 
     var endScores: number[] = [];
-
     for (var i = 0; i < numberOfPlayers; i++)
     {
-        endScores[i] = totalPoints - remainingPoints[i];
+        if (i === minPlayer)
+        {
+          endScores[i] = totalPoints - 2 * remainingPoints[i];
+        }
+        else
+        {
+          endScores[i] = 0;
+        }
     }
 
     for (var i = 0; i < 28; i++)
