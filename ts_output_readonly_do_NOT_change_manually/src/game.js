@@ -72,6 +72,13 @@ var game;
             $rootScope.yourPlayerIndex = params.turnIndexBeforeMove;
             return;
         }
+        if (canMakeMove) {
+            if (wasPassMove(params.stateBeforeMove) && wasPassMove(params.stateAfterMove)) {
+                var delta = { play: Play.REVEAL };
+                var move = gameLogic.createMove(state, params.turnIndexAfterMove, delta, state);
+                gameService.makeMove(move);
+            }
+        }
         // Is it the computer's turn?
         isComputerTurn = canMakeMove &&
             params.playersInfo[params.yourPlayerIndex].playerId === '';
@@ -89,6 +96,54 @@ var game;
             }
         }
     }
+    function wasPassMove(testState) {
+        if (!!testState && !!testState.delta && !!testState.delta.play && testState.delta.play === Play.PASS) {
+            return true;
+        }
+        return false;
+    }
+    // function canMakeAPlay(state: IState, isRight: boolean, parentOrientation: string, parentTileKey: string, tileKey: string):boolean
+    // {
+    //   var board:IBoard = state.board
+    //
+    //   if (!!board && !board.root)
+    //   {
+    //     return state[tileKey].leftNumber === state[tileKey].rightNumber;
+    //   }
+    //
+    //   var parent: ITile = state[parentTileKey];
+    //   var tile: ITile = state[playedTileKey];
+    //   var flipped: boolean = parentOrientation === "flipped";
+    //   var numberToMatch:number;
+    //   if (flipped){
+    //     numberToMatch = isRight ? parent.rightNumber : parent.leftNumber;
+    //   }
+    //   else{
+    //     numberToMatch = isRight ? parent.leftNumber : parent.rightNumber;
+    //   }
+    //
+    //   return tile.leftNumber === numberToMatch || tile.rightNumber === numberToMatch;
+    //
+    // }
+    function passPlay() {
+        log.info("Tried to pass");
+        if (!canMakeMove) {
+            return;
+        }
+        try {
+            var play = Play.PASS;
+            $rootScope.selectedTile = undefined;
+            var move = gameLogic.createMove(state, turnIndex, { play: play }, state);
+            canMakeMove = false;
+            log.info("Making move to pass");
+            gameService.makeMove(move);
+        }
+        catch (e) {
+            log.error(["Cannot make play for tree:", treeId]);
+            return;
+        }
+    }
+    game.passPlay = passPlay;
     function placeTileOnTree(treeId) {
         log.info(["Tried to make play for tree:", treeId]);
         if (window.location.search === '?throwException') {
@@ -408,7 +463,7 @@ var game;
     * Also take into consideration that the lower number of the tile is always on the left of the name.
     */
     function constructImageUrl(tile) {
-        if (tile === undefined) {
+        if (tile === undefined || tile === null) {
             return "imgs/dominoes/domino-blank.svg";
         }
         return tile.leftNumber <= tile.rightNumber ?
@@ -420,6 +475,12 @@ var game;
         return "" + scores[player];
     }
     game.getFinalScore = getFinalScore;
+    function getOpponentSource(tileIndex, playerIndex) {
+        var tile = !!state && !!state.players[playerIndex] && !!state.players[playerIndex].hand ?
+            state.players[playerIndex].hand[tileIndex] : undefined;
+        return constructImageUrl(tile);
+    }
+    game.getOpponentSource = getOpponentSource;
 })(game || (game = {}));
 //   function handleDragEvent(type, clientX, clientY) {
 //       if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {

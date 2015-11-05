@@ -5,6 +5,15 @@
   border-bottom: 4pt solid black;
 }
 
+.btn {
+  width: 8%;
+  height: 40%;
+  text-align: center;
+  padding: 0 0;
+  font-size: 80%;
+  background-color: gray;
+}
+
 .scoreText{
   display: inline;
   color: blue;

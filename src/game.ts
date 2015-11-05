@@ -84,6 +84,16 @@ module game {
       return;
     }
 
+    if (canMakeMove)
+    {
+      if (wasPassMove(params.stateBeforeMove) && wasPassMove(params.stateAfterMove))
+      {
+        let delta = { play: Play.REVEAL };
+        let move = gameLogic.createMove(state, params.turnIndexAfterMove, delta, state);
+        gameService.makeMove(move);
+      }
+    }
+
     // Is it the computer's turn?
     isComputerTurn = canMakeMove &&
         params.playersInfo[params.yourPlayerIndex].playerId === '';
@@ -99,6 +109,59 @@ module game {
         // call sendComputerMove() now (can happen in ?onlyAIs mode)
         sendComputerMove();
       }
+    }
+  }
+
+  function wasPassMove(testState: IState): boolean
+  {
+    if (!!testState && !!testState.delta && !!testState.delta.play && testState.delta.play === Play.PASS)
+    {
+      return true;
+    }
+
+    return false;
+  }
+
+  // function canMakeAPlay(state: IState, isRight: boolean, parentOrientation: string, parentTileKey: string, tileKey: string):boolean
+  // {
+  //   var board:IBoard = state.board
+  //
+  //   if (!!board && !board.root)
+  //   {
+  //     return state[tileKey].leftNumber === state[tileKey].rightNumber;
+  //   }
+  //
+  //   var parent: ITile = state[parentTileKey];
+  //   var tile: ITile = state[playedTileKey];
+  //   var flipped: boolean = parentOrientation === "flipped";
+  //   var numberToMatch:number;
+  //   if (flipped){
+  //     numberToMatch = isRight ? parent.rightNumber : parent.leftNumber;
+  //   }
+  //   else{
+  //     numberToMatch = isRight ? parent.leftNumber : parent.rightNumber;
+  //   }
+  //
+  //   return tile.leftNumber === numberToMatch || tile.rightNumber === numberToMatch;
+  //
+  // }
+
+  export function passPlay():void
+  {
+    log.info("Tried to pass");
+    if (!canMakeMove) {
+      return;
+    }
+    try {
+      let play = Play.PASS;
+      $rootScope.selectedTile = undefined;
+      let move = gameLogic.createMove(state, turnIndex, { play: play}, state);
+      canMakeMove = false;
+      log.info("Making move to pass");
+      gameService.makeMove(move);
+    } catch (e) {
+      log.error(["Cannot make play for tree:", treeId]);
+      return;
     }
   }
 
@@ -443,7 +506,7 @@ module game {
   */
   function constructImageUrl(tile: ITile) : string
   {
-    if(tile === undefined)
+    if (tile === undefined || tile === null)
     {
         return "imgs/dominoes/domino-blank.svg";
     }
@@ -457,6 +520,14 @@ module game {
   {
     var scores:number[] = $rootScope.scores;
     return "" + scores[player];
+  }
+
+  export function getOpponentSource(tileIndex: number, playerIndex: number): string
+  {
+    var tile = !!state && !!state.players[playerIndex] && !!state.players[playerIndex].hand ?
+      state.players[playerIndex].hand[tileIndex] : undefined;
+    return constructImageUrl(tile);
+
   }
   // export function shouldSlowlyAppear(row: number, col: number): boolean {
   //   return !animationEnded &&

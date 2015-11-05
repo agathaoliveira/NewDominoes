@@ -135,40 +135,6 @@ var gameLogic;
             throw new Error("Cannot place tile at the board! Numbers are invalid.");
         }
     }
-    function canMakeAPlay(tileKey, board, state, isRight) {
-        if (!board.root) {
-            return state[tileKey].leftNumber === state[tileKey].rightNumber;
-        }
-        var parent = board.root;
-        var flipped = false;
-        var i = 1;
-        var tile = isRight ? board.root.rightTile : board.root.leftTile;
-        while (tile.rightTile !== undefined) {
-            parent = tile;
-            tile = isRight ? parent.rightTile : parent.leftTile;
-            if (!flipped && parent.leftNumber === tile.rightNumber) {
-                flipped = false;
-            }
-            else if (!flipped) {
-                flipped = true;
-            }
-            else if (parent.rightNumber === tile.rightNumber) {
-                flipped = false;
-            } //L R
-            else {
-                flipped = true;
-            }
-        }
-        tile = tile === undefined ? undefined : state[tile.tileKey];
-        var playedTile = state[playedTileKey];
-        if (flipped) {
-            return tile.rightNumber === playedTile.rightNumber || tile.rightNumber === playedTile.leftNumber;
-        }
-        else {
-            return tile.leftNumber === playedTile.rightNumber || tile.leftNumber === playedTile.leftNumber;
-        }
-    }
-    gameLogic.canMakeAPlay = canMakeAPlay;
     function createMoveEndGame(allPlayers, state, delta) {
         var operations = [], remainingPoints = [], numberOfPlayers = allPlayers.length, totalPoints = 0;
         for (var i = 0; i < numberOfPlayers; i++) {
@@ -179,14 +145,18 @@ var gameLogic;
         for (var i = 0; i < numberOfPlayers; i++) {
             endScores[i] = totalPoints - remainingPoints[i];
         }
+        for (var i = 0; i < 28; i++) {
+            operations.push({ set: { key: 'tile' + i, value: state['tile' + i] } });
+        }
         operations.push({ endMatch: { endMatchScores: endScores } });
         operations.push({ set: { key: 'delta', value: delta } });
         return operations;
     }
     gameLogic.createMoveEndGame = createMoveEndGame;
-    function createMovePass(turnIndexBeforeMove, numberOfPlayers) {
+    function createMovePass(turnIndexBeforeMove, numberOfPlayers, delta) {
         var operations = [];
         operations.push({ setTurn: { turnIndex: (turnIndexBeforeMove + 1) % numberOfPlayers } });
+        operations.push({ set: { key: 'delta', value: delta } });
         return operations;
     }
     gameLogic.createMovePass = createMovePass;
@@ -275,13 +245,13 @@ var gameLogic;
             return createMoveBuy(houseAfterMove, playedTileKey, playerAfterMove, playersAfterMove, boardAfterMove, delta, turnIndexBeforeMove);
         }
         else if (Play.PASS == play) {
-            return createMovePass(turnIndexBeforeMove, playersAfterMove.length);
+            return createMovePass(turnIndexBeforeMove, playersAfterMove.length, delta);
         }
         else if (Play.REVEAL === play) {
             return createMoveReveal(playersAfterMove.length, turnIndexBeforeMove, delta, stateAfterMove.players);
         }
         else if (Play.END === play) {
-            return createMoveEndGame(playersAfterMove, state, delta);
+            return createMoveEndGame(playersAfterMove, stateAfterMove, delta);
         }
         else {
             throw new Error("Unknown play");

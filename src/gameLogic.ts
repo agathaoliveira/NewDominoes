@@ -228,41 +228,6 @@ module gameLogic {
       }
   }
 
-  export function canMakeAPlay(tileKey: string, board: IBoard, state: IState, isRight: boolean):boolean
-  {
-    if (!board.root)
-    {
-      return state[tileKey].leftNumber === state[tileKey].rightNumber;
-    }
-
-    var parent:ITile = board.root;
-    var flipped: boolean = false;
-    var i = 1;
-    var tile: ITile = isRight ? board.root.rightTile : board.root.leftTile;
-
-    while (tile.rightTile !== undefined)
-    {
-      parent = tile;
-      tile = isRight ? parent.rightTile : parent.leftTile;
-
-      if (!flipped && parent.leftNumber === tile.rightNumber)//R L
-      {
-        flipped = false;
-      }
-      else if (!flipped){flipped = true;}
-      else if (parent.rightNumber === tile.rightNumber){ flipped = false; }//L R
-      else { flipped = true; }
-
-    }
-
-    tile = tile === undefined ? undefined : state[tile.tileKey];
-    var playedTile:ITile = state[playedTileKey];
-
-    if (flipped){ return tile.rightNumber === playedTile.rightNumber || tile.rightNumber === playedTile.leftNumber; }
-    else{ return tile.leftNumber === playedTile.rightNumber || tile.leftNumber === playedTile.leftNumber; }
-
-  }
-
   export function createMoveEndGame(allPlayers: IPlayer[], state: IState, delta: BoardDelta): IMove
   {
     var operations: IMove = [],
@@ -283,16 +248,22 @@ module gameLogic {
         endScores[i] = totalPoints - remainingPoints[i];
     }
 
+    for (var i = 0; i < 28; i++)
+    {
+      operations.push({set: {key: 'tile' + i, value: state['tile' + i]}});
+    }
+
     operations.push({endMatch: {endMatchScores: endScores}});
     operations.push({set: {key: 'delta', value: delta}});
     return operations;
   }
 
-  export function createMovePass(turnIndexBeforeMove: number, numberOfPlayers: number) : IMove
+  export function createMovePass(turnIndexBeforeMove: number, numberOfPlayers: number, delta: BoardDelta) : IMove
   {
     var operations: IMove = [];
 
     operations.push({setTurn: {turnIndex: (turnIndexBeforeMove + 1) % numberOfPlayers}});
+    operations.push({set: {key: 'delta', value: delta}});
 
     return operations;
   }
@@ -431,7 +402,7 @@ module gameLogic {
     }
     else if (Play.PASS == play)
     {
-      return createMovePass(turnIndexBeforeMove, playersAfterMove.length);
+      return createMovePass(turnIndexBeforeMove, playersAfterMove.length, delta);
     }
     else if (Play.REVEAL === play)
     {
@@ -439,7 +410,7 @@ module gameLogic {
     }
     else if (Play.END === play)
     {
-      return createMoveEndGame(playersAfterMove, state, delta);
+      return createMoveEndGame(playersAfterMove, stateAfterMove, delta);
     }
     else
     {
