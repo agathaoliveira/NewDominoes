@@ -23,7 +23,10 @@ module aiService {
     {
       if (!board || !board.root)
       {
-        play = Play.RIGHT;
+        if (stateBeforeMove[hand[i]].leftNumber === stateBeforeMove[hand[i]].rightNumber)
+        {
+          play = Play.RIGHT;
+        }
       }
       else
       {
@@ -39,7 +42,7 @@ module aiService {
 
     if (play === undefined)
     {
-      if (numberOfHouseTiles != 0)
+      if (!!board && !!board.root && numberOfHouseTiles != 0)
       {
         play = Play.BUY
         key = stateBeforeMove.house.hand[0];

@@ -19,7 +19,9 @@ var aiService;
         var play = undefined;
         for (var i = 0; i < hand.length; i++) {
             if (!board || !board.root) {
-                play = Play.RIGHT;
+                if (stateBeforeMove[hand[i]].leftNumber === stateBeforeMove[hand[i]].rightNumber) {
+                    play = Play.RIGHT;
+                }
             }
             else {
                 play = getPlayBasedOnBoardTiles(stateBeforeMove[hand[i]], leftNumber, rightNumber);
@@ -30,7 +32,7 @@ var aiService;
             }
         }
         if (play === undefined) {
-            if (numberOfHouseTiles != 0) {
+            if (!!board && !!board.root && numberOfHouseTiles != 0) {
                 play = Play.BUY;
                 key = stateBeforeMove.house.hand[0];
             }
