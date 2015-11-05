@@ -522,12 +522,10 @@ module game {
     return "" + scores[player];
   }
 
-  export function getOpponentSource(tileIndex: number, playerIndex: number): string
+  export function getPlayerIconSource(player: number): string
   {
-    var tile = !!state && !!state.players[playerIndex] && !!state.players[playerIndex].hand ?
-      state.players[playerIndex].hand[tileIndex] : undefined;
-    return constructImageUrl(tile);
-
+    var imageNumber = player % 2; //2 is chosen because there are only two images.
+    return "imgs/player/image" + player + ".svg";
   }
   // export function shouldSlowlyAppear(row: number, col: number): boolean {
   //   return !animationEnded &&
@@ -570,10 +568,11 @@ angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
   translate.setLanguage('en',  {
     RULES_OF_TICTACTOE: "Rules of Dominoes",
     RULES_SLIDE1: "This game is played according to the draw rules. The first player to join the game who has a double places the first domino. If you don't have a double tile, click on pass",
-    RULES_SLIDE2: "Each player adds a domino to an open end of the layout, if he/she can. The layour flows left/right as necessary.",
+    RULES_SLIDE2: "Each player adds a domino to an open end of the layout, if he/she can. The layout flows left/right as necessary.",
     RULES_SLIDE3: "If a player is unable to make a move, he/she must draw dominoes from the boneyard until he can make a move. If there are no dominoes left, then the player must pass.",
     RULES_SLIDE4: "A game ends either when a player plays all his/her tiles, or when a game is blocked. A game is blocked when no player is able to add another tile to the layout.",
     RULES_SLIDE5: "When a hand ends, the player with the lightest hand (i.e. the fewest number of dots on their dominoes) wins the number of sum total of points in all of his opponents hands (minus the points in his own hand, if any)",
+    PASS: "PASS",
     CLOSE: "Close"
   });
   game.init();
