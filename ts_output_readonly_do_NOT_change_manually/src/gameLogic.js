@@ -301,8 +301,8 @@ var gameLogic;
         *    one or more dominoes.
         ********************************************************************/
         // console.log("isMoveOk(): Calling is move ok");
-        // console.log("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
-        // console.log("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
+        //  console.log("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
+        //  console.log("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
         try {
             if (numberOfPlayers > 4) {
                 throw Error("A maximum of 4 players are allowed for this game");
@@ -311,15 +311,12 @@ var gameLogic;
             if (!params.stateBeforeMove || !params.stateBeforeMove.board) {
                 expectedMove = getInitialMove(numberOfPlayers);
             }
-            else if (move[0].endMatch !== undefined) {
-                return true;
-            }
             else {
                 expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta, params.stateAfterMove);
             }
             //  console.log("ACTUAL: " + JSON.stringify(move));
             //  console.log("---------------------")
-            // console.log("EXPECTED: " + JSON.stringify(expectedMove));
+            //  console.log("EXPECTED: " + JSON.stringify(expectedMove));
             if (!angular.equals(move, expectedMove)) {
                 //  logDiffToConsole(move, expectedMove);
                 return false;

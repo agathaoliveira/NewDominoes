@@ -403,7 +403,6 @@ module gameLogic {
     playerAfterMove = angular.copy(players[turnIndexBeforeMove]);
     houseAfterMove = angular.copy(house);
 
-
     //If there was no tile on the board before, this is the first tile
     if (Play.LEFT === play || Play.RIGHT === play)
     {
@@ -469,8 +468,8 @@ module gameLogic {
     ********************************************************************/
 
     // console.log("isMoveOk(): Calling is move ok");
-    // console.log("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
-    // console.log("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
+    //  console.log("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
+    //  console.log("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
 
     try {
       if (numberOfPlayers > 4)
@@ -484,10 +483,6 @@ module gameLogic {
       {
         expectedMove = getInitialMove(numberOfPlayers);
       }
-      else if (move[0].endMatch !== undefined)
-      {
-        return true;
-      }
       else
       {
         expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta, params.stateAfterMove);
@@ -495,7 +490,7 @@ module gameLogic {
 
       //  console.log("ACTUAL: " + JSON.stringify(move));
       //  console.log("---------------------")
-        // console.log("EXPECTED: " + JSON.stringify(expectedMove));
+        //  console.log("EXPECTED: " + JSON.stringify(expectedMove));
 
       if (!angular.equals(move, expectedMove)) {
       //  logDiffToConsole(move, expectedMove);

@@ -7,12 +7,7 @@ var aiService;
      * millisecondsLimit is a time limit, and maxDepth is a depth limit.
      */
     function createComputerMove(playerIndex, stateBeforeMove, leftNumber, rightNumber) {
-        // We use alpha-beta search, where the search states are TicTacToe moves.
-        // Recal that a TicTacToe move has 3 operations:
-        // 0) endMatch or setTurn
-        // 1) {set: {key: 'board', value: ...}}
-        // 2) {set: {key: 'delta', value: ...}}]
-        console.log("createComputerMove(): stateBefore " + JSON.stringify(stateBeforeMove));
+        // console.log("createComputerMove(): stateBefore " + JSON.stringify(stateBeforeMove));
         var board = stateBeforeMove.board;
         var hand = stateBeforeMove.players[playerIndex].hand;
         var numberOfHouseTiles = !(stateBeforeMove.house) ? 0 : stateBeforeMove.house.hand.length;
