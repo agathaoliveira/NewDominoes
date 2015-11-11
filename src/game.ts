@@ -281,34 +281,57 @@ module game {
     return result;
   }
 
-  /* Decide if tile with this numebr should be shown. The tree parameter defines
-  * if we are going left or right
-  */
-  export function shouldShowImage(tileLevel: number, tree: number): boolean {
+  export function shouldSlowlyAppear(tileIndex: number, playerId: number): boolean
+  {
+    return !animationEnded && state.delta && state.delta.play === Play.BUY && state.players[playerId].hand[tileIndex] === state.delta.tileKey;
+  }
+
+  export function shouldEnlarge(tileLevel: number, tree: number): boolean {
+
+    if (animationEnded || !state.delta){ return false; }
+
+    var tile = getTileAt(tileLevel, tree);
+
+    return tile && state.delta.tileKey === tile.tileKey;
+  }
+
+  function getTileAt(tileLevel: number, tree: number): ITile
+  {
     let board = state.board;
 
     if (!board || !board.root)
     {
-      return false;
+      return undefined;
     }
 
+    var tile: ITile;
     //Root tile
     if (tree === 0)
     {
-      if (tileLevel != 0) { return false; }
-      return !!board.root;
+      if (tileLevel != 0) { return undefined; }
+      tile = board.root;
     }
-
-    //Check if tile at level (i) exists for right or left tree
-    var i = 1;
-    var tile: ITile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
-
-    while (i !== tileLevel && tile !== undefined)
+    else
     {
-      i++;
-      tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
+      //Check if tile at level (i) exists for right or left tree
+      var i = 1;
+      tile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
+
+      while (i !== tileLevel && tile !== undefined)
+      {
+        i++;
+        tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
+      }
     }
 
+    return tile;
+  }
+
+  /* Decide if tile with this numebr should be shown. The tree parameter defines
+  * if we are going left or right
+  */
+  export function shouldShowImage(tileLevel: number, tree: number): boolean {
+    var tile = getTileAt(tileLevel, tree);
     return !(tile === undefined)
   }
 
@@ -433,11 +456,11 @@ module game {
 
   }
 
-  export function getImageClass(tileLevel: number, tree: number): string{
+  export function getImageClass(tileLevel: number, tree: number, classForComparison: string): boolean{
 
     if (!!treeClasses[tree] && !!treeClasses[tree][tileLevel])
     {
-      return treeClasses[tree][tileLevel];
+      return classForComparison === treeClasses[tree][tileLevel];
     }
 
     var orientation: string = getTileOrientation(tileLevel, tree);
@@ -448,7 +471,7 @@ module game {
       treeClasses[tree] = [];
     }
     treeClasses[tree][tileLevel] = imageClass;
-    return imageClass;
+    return imageClass === classForComparison;
 
   }
 
@@ -556,11 +579,7 @@ module game {
     var imageNumber = player % 2; //2 is chosen because there are only two images.
     return "imgs/player/image" + player + ".svg";
   }
-  // export function shouldSlowlyAppear(row: number, col: number): boolean {
-  //   return !animationEnded &&
-  //       state.delta &&
-  //       state.delta.row === row && state.delta.col === col;
-  // }
+
 }
 
 //   function handleDragEvent(type, clientX, clientY) {

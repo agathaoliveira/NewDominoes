@@ -237,28 +237,47 @@ var game;
         }
         return result;
     }
+    function shouldSlowlyAppear(tileIndex, playerId) {
+        return !animationEnded && state.delta && state.delta.play === Play.BUY && state.players[playerId].hand[tileIndex] === state.delta.tileKey;
+    }
+    game.shouldSlowlyAppear = shouldSlowlyAppear;
+    function shouldEnlarge(tileLevel, tree) {
+        if (animationEnded || !state.delta) {
+            return false;
+        }
+        var tile = getTileAt(tileLevel, tree);
+        return tile && state.delta.tileKey === tile.tileKey;
+    }
+    game.shouldEnlarge = shouldEnlarge;
+    function getTileAt(tileLevel, tree) {
+        var board = state.board;
+        if (!board || !board.root) {
+            return undefined;
+        }
+        var tile;
+        //Root tile
+        if (tree === 0) {
+            if (tileLevel != 0) {
+                return undefined;
+            }
+            tile = board.root;
+        }
+        else {
+            //Check if tile at level (i) exists for right or left tree
+            var i = 1;
+            tile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
+            while (i !== tileLevel && tile !== undefined) {
+                i++;
+                tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
+            }
+        }
+        return tile;
+    }
     /* Decide if tile with this numebr should be shown. The tree parameter defines
     * if we are going left or right
     */
     function shouldShowImage(tileLevel, tree) {
-        var board = state.board;
-        if (!board || !board.root) {
-            return false;
-        }
-        //Root tile
-        if (tree === 0) {
-            if (tileLevel != 0) {
-                return false;
-            }
-            return !!board.root;
-        }
-        //Check if tile at level (i) exists for right or left tree
-        var i = 1;
-        var tile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
-        while (i !== tileLevel && tile !== undefined) {
-            i++;
-            tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
-        }
+        var tile = getTileAt(tileLevel, tree);
         return !(tile === undefined);
     }
     game.shouldShowImage = shouldShowImage;
@@ -384,9 +403,9 @@ var game;
         return orientation;
     }
     game.getTileOrientation = getTileOrientation;
-    function getImageClass(tileLevel, tree) {
+    function getImageClass(tileLevel, tree, classForComparison) {
         if (!!treeClasses[tree] && !!treeClasses[tree][tileLevel]) {
-            return treeClasses[tree][tileLevel];
+            return classForComparison === treeClasses[tree][tileLevel];
         }
         var orientation = getTileOrientation(tileLevel, tree);
         var imageClass = getClassForTree(tree, orientation === "flipped");
@@ -394,7 +413,7 @@ var game;
             treeClasses[tree] = [];
         }
         treeClasses[tree][tileLevel] = imageClass;
-        return imageClass;
+        return imageClass === classForComparison;
     }
     game.getImageClass = getImageClass;
     function getClassForTree(tree, flipped) {

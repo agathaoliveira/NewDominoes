@@ -240,21 +240,81 @@
 	animation: slowlyAppear 0.5s linear;
 }
 
+.move_down_right {
+  -webkit-animation: move_down_right 0.4s linear forwards;
+  animation: move_down_right 0.4s linear forwards;
+}
+
+.jump_down_right {
+  -webkit-animation: jump_down_right 0.4s linear forwards;
+  animation: jump_down_right 0.4s linear forwards;
+}
+
+.fade {
+    border: dashed 0.3em;
+    border-color: dimgrey;
+}
+
+.enLar {
+    -webkit-animation: enlarge 0.5s linear;
+    -moz-animation: enlarge 0.5s linear;
+    -ms-animation: enlarge 0.5s linear;
+    -o-animation: enlarge 0.5s linear;
+    animation: enlarge 0.5s linear;
+}
+
 @-webkit-keyframes slowlyAppear {
-  from {opacity: 0.1;}
-  to {opacity: 1;}
+    from {opacity: 0.1;}
+    to {opacity: 1;}
 }
 @-moz-keyframes slowlyAppear {
-  from {opacity: 0.1;}
-  to {opacity: 1;}
+    from {opacity: 0.1;}
+    to {opacity: 1;}
 }
 @-o-keyframes slowlyAppear {
-  from {opacity: 0.1;}
-  to {opacity: 1;}
+    from {opacity: 0.1;}
+    to {opacity: 1;}
 }
 @keyframes slowlyAppear {
-  from {opacity: 0.1;}
-  to {opacity: 1;}
+    from {opacity: 0.1;}
+    to {opacity: 1;}
+}
+
+@-webkit-keyframes disappear {
+    from {opacity: 1;}
+    to {opacity: 0.1;}
+}
+@-moz-keyframes disappear {
+    from {opacity: 1;}
+    to {opacity: 0.1;}
+}
+@-o-keyframes disappear {
+    from {opacity: 1;}
+    to {opacity: 0.1;}
+}
+@keyframes disappear {
+    from {opacity: 1;}
+    to {opacity: 0.1;}
+}
+
+@-webkit-keyframes enlarge {
+    0% { transform:scale(1.5) }
+    50% { transform:scale(2) }
+}
+
+@-moz-keyframes enlarge {
+  0% { transform:scale(1.5) }
+  50% { transform:scale(2) }
+}
+
+@-o-keyframes enlarge {
+  0% { transform:scale(1.5) }
+  50% { transform:scale(2) }
+}
+
+@keyframes enlarge {
+  0% { transform:scale(1.5) }
+  50% { transform:scale(2) }
 }
 
 td {
