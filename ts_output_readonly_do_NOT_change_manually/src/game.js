@@ -14,8 +14,6 @@ var game;
         return angular.isUndefined(val) || val === null;
     };
     game.isHelpModalShown = false;
-    var dndStartPos = null;
-    var dndElem = null;
     function init() {
         console.log("Translation of 'RULES_OF_TICTACTOE' is " + translate('RULES_OF_TICTACTOE'));
         resizeGameAreaService.setWidthToHeight(2);
@@ -517,34 +515,22 @@ var game;
         return "imgs/player/image" + player + ".svg";
     }
     game.getPlayerIconSource = getPlayerIconSource;
+    function handleDragEvent(type, clientX, clientY) {
+        var el = angular.element(document.elementFromPoint(clientX, clientY));
+        if (!dragEl && el.hasClass('checker')) {
+            childEl = el;
+            row = +el.attr('data-row');
+            col = +el.attr('data-col');
+            pos = childEl[0].getBoundingClientRect();
+        }
+        else if (el.hasClass('checkerCell')) {
+            childEl = el.children();
+            row = +el.attr('data-row');
+            col = +el.attr('data-col');
+            pos = childEl[0].getBoundingClientRect();
+        }
+    }
 })(game || (game = {}));
-//   function handleDragEvent(type, clientX, clientY) {
-//       if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
-//           draggingLines.style.display = "none";
-//           myDrag.style.display = "none";
-//           return;
-//       }
-//       var pos = getDraggingTilePosition(clientX, clientY);
-//       if (type === "touchstart" ) {
-//           dragStartHandler(pos);
-//       }
-//       if (!dragFrom) {
-//           // end dragging if not a valid drag start
-//           return;
-//       }
-//       if (type === "touchend") {
-//           dragEndHandler(pos);
-//       } else {
-//           // drag continues
-//           dragContinueHandler(pos);
-//       }
-//       if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
-//           draggingLines.style.display = "none";
-//           myDrag.style.display = "none";
-//           dragFrom = null;
-//       }
-//   }
-// }
 angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
     .run(function () {
     $rootScope['game'] = game;

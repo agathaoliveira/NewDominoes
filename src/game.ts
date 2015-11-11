@@ -13,8 +13,7 @@ module game {
           return angular.isUndefined(val) || val === null;
         };
   export let isHelpModalShown: boolean = false;
-  var dndStartPos = null;
-        var dndElem = null;
+
 
   export function init() {
     console.log("Translation of 'RULES_OF_TICTACTOE' is " + translate('RULES_OF_TICTACTOE'));
@@ -580,35 +579,26 @@ module game {
     return "imgs/player/image" + player + ".svg";
   }
 
+  function handleDragEvent(type: string, clientX: number, clientY: number) {
+    var el = angular.element(document.elementFromPoint(clientX, clientY));
+        if( !dragEl && el.hasClass('checker') ) {
+            childEl = el;
+            row = +el.attr('data-row');
+            col = +el.attr('data-col');
+            pos = childEl[0].getBoundingClientRect();
+        }
+        else if( el.hasClass('checkerCell') ) {
+            childEl = el.children();
+            row = +el.attr('data-row');
+            col = +el.attr('data-col');
+            pos = childEl[0].getBoundingClientRect();
+        }
+  }
+
 }
 
-//   function handleDragEvent(type, clientX, clientY) {
-//       if (!$scope.isYourTurn || !isWithinGameArea(clientX, clientY)) {
-//           draggingLines.style.display = "none";
-//           myDrag.style.display = "none";
-//           return;
-//       }
-//       var pos = getDraggingTilePosition(clientX, clientY);
-//       if (type === "touchstart" ) {
-//           dragStartHandler(pos);
-//       }
-//       if (!dragFrom) {
-//           // end dragging if not a valid drag start
-//           return;
-//       }
-//       if (type === "touchend") {
-//           dragEndHandler(pos);
-//       } else {
-//           // drag continues
-//           dragContinueHandler(pos);
-//       }
-//       if (type === "touchend" || type === "touchcancel" || type === "touchleave") {
-//           draggingLines.style.display = "none";
-//           myDrag.style.display = "none";
-//           dragFrom = null;
-//       }
-//   }
-// }
+
+
 
 angular.module('myApp', ['ngTouch', 'ui.bootstrap', 'gameServices'])
   .run(function () {
