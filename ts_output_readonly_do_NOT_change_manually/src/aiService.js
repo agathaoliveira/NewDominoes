@@ -12,6 +12,7 @@ var aiService;
         // 0) endMatch or setTurn
         // 1) {set: {key: 'board', value: ...}}
         // 2) {set: {key: 'delta', value: ...}}]
+        console.log("createComputerMove(): stateBefore " + JSON.stringify(stateBeforeMove));
         var board = stateBeforeMove.board;
         var hand = stateBeforeMove.players[playerIndex].hand;
         var numberOfHouseTiles = !(stateBeforeMove.house) ? 0 : stateBeforeMove.house.hand.length;

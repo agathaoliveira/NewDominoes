@@ -43,15 +43,32 @@ module game {
     });
   }
 
+  function getHighestLeftTree(): number
+  {
+    if (!!tileOrientation[2]) { return 2;}
+    if (!!tileOrientation[3]) { return 3;}
+    if (!!tileOrientation[4]) { return 4;}
+    if (!!tileOrientation[5]) { return 5;}
+  }
+
+  function getHighestRightTree(): number
+  {
+    if (!!tileOrientation[8]) { return 8;}
+    if (!!tileOrientation[7]) { return 7;}
+    if (!!tileOrientation[6]) { return 6;}
+    if (!!tileOrientation[1]) { return 1;}
+    if (!!tileOrientation[0]) { return 0;}
+  }
+
   function sendComputerMove() {
-    var leftNumber = getBoardNumber(false);
-    var rightNumber = getBoardNumber(true);
+    var leftNumber = getBoardNumber(false, getHighestLeftTree());
+    var rightNumber = getBoardNumber(true, getHighestRightTree());
     log.info("sendComputerMove(): Calling make move for computer move for left number: " + leftNumber + " and right number " + rightNumber);
     gameService.makeMove(
         aiService.createComputerMove(turnIndex, state, leftNumber, rightNumber));
   }
 
-  function getBoardNumber(isRight: boolean): number
+  function getBoardNumber(isRight: boolean, tree: number): number
   {
     let board = state.board;
 
@@ -60,7 +77,7 @@ module game {
     if (isRight)
     {
       var rightLevel = getTileLevel(true, board.rightMost);
-      var rightOrientation = rightLevel === -1 ? undefined : getTileOrientation(rightLevel, 7);
+      var rightOrientation = rightLevel === -1 ? undefined : getTileOrientation(rightLevel, tree);
       var rightNumber = rightOrientation === undefined ? undefined : rightOrientation === "regular" ? state[board.rightMost].rightNumber : state[board.rightMost].leftNumber;
 
       return rightNumber;
@@ -68,7 +85,7 @@ module game {
     else
     {
       var leftLevel = getTileLevel(false, board.leftMost);
-      var leftOrientation = leftLevel === -1 ? undefined : getTileOrientation(leftLevel, 5);
+      var leftOrientation = leftLevel === -1 ? undefined : getTileOrientation(leftLevel, tree);
       var leftNumber = leftOrientation === undefined ? undefined : leftOrientation === "regular" ? state[board.leftMost].rightNumber : state[board.leftMost].leftNumber;
 
       return leftNumber;

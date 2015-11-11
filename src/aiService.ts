@@ -13,6 +13,8 @@ module aiService {
     // 1) {set: {key: 'board', value: ...}}
     // 2) {set: {key: 'delta', value: ...}}]
 
+    console.log("createComputerMove(): stateBefore " + JSON.stringify(stateBeforeMove));
+
     var board: IBoard = stateBeforeMove.board;
     var hand: string[] = stateBeforeMove.players[playerIndex].hand;
     var numberOfHouseTiles: number = !(stateBeforeMove.house) ? 0 : stateBeforeMove.house.hand.length;
