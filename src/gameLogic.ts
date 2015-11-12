@@ -351,18 +351,20 @@ module gameLogic {
     else if (play === Play.RIGHT)
     {
       var tile: ITile = stateAfterMove[playedTileKey];
-      var rightTile: ITile = stateAfterMove[board.rightMost];
+      var rightTile: number = stateAfterMove.board.currentRight;
 
-      validateTiles(tile, stateAfterMove.board.currentRight);
+      validateTiles(tile, rightTile);
+      board.currentRight = rightTile;
 
       addTileToTheRight(board, playedTile);
     }
     else //Play.LEFT
     {
       var tile: ITile = stateAfterMove[playedTileKey];
-      var leftTile: ITile = stateAfterMove[board.leftMost];
+      var leftTile: number = stateAfterMove.board.currentLeft;
 
-      validateTiles(tile, stateAfterMove.board.currentLeft);
+      validateTiles(tile, leftTile);
+      board.currentLeft = leftTile;
 
       addTileToTheLeft(board, playedTile);
     }

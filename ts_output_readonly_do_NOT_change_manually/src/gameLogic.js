@@ -214,14 +214,16 @@ var gameLogic;
         }
         else if (play === Play.RIGHT) {
             var tile = stateAfterMove[playedTileKey];
-            var rightTile = stateAfterMove[board.rightMost];
-            validateTiles(tile, stateAfterMove.board.currentRight);
+            var rightTile = stateAfterMove.board.currentRight;
+            validateTiles(tile, rightTile);
+            board.currentRight = rightTile;
             addTileToTheRight(board, playedTile);
         }
         else {
             var tile = stateAfterMove[playedTileKey];
-            var leftTile = stateAfterMove[board.leftMost];
-            validateTiles(tile, stateAfterMove.board.currentLeft);
+            var leftTile = stateAfterMove.board.currentLeft;
+            validateTiles(tile, leftTile);
+            board.currentLeft = leftTile;
             addTileToTheLeft(board, playedTile);
         }
         removeTileFromHand(player, playedTileKey);
