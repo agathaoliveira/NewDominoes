@@ -14,6 +14,8 @@ interface IBoard {
   root: ITile;
   leftMost?: string; //the index of the left most child
   rightMost?: string; //the index of the right most child
+  currentLeft: number;
+  currentRight: number;
 }
 
 enum Play {
@@ -219,10 +221,10 @@ module gameLogic {
     return points;
   }
 
-  function validateTiles(tile: ITile, boardTile: ITile)
+  function validateTiles(tile: ITile, currentNumber: number)
   {
-    if (tile.rightNumber !== boardTile.rightNumber && tile.rightNumber !== boardTile.leftNumber &&
-      tile.leftNumber !== boardTile.rightNumber && tile.leftNumber !== boardTile.leftNumber)
+    if (tile.rightNumber !== currentNumber &&
+      tile.leftNumber !== currentNumber)
       {
           throw new Error("Cannot place tile at the board! Numbers are invalid.");
       }
@@ -351,7 +353,7 @@ module gameLogic {
       var tile: ITile = stateAfterMove[playedTileKey];
       var rightTile: ITile = stateAfterMove[board.rightMost];
 
-      validateTiles(tile, rightTile);
+      validateTiles(tile, board.currentRight);
 
       addTileToTheRight(board, playedTile);
     }
@@ -360,7 +362,7 @@ module gameLogic {
       var tile: ITile = stateAfterMove[playedTileKey];
       var leftTile: ITile = stateAfterMove[board.leftMost];
 
-      validateTiles(tile, leftTile);
+      validateTiles(tile, board.currentLeft);
 
       addTileToTheLeft(board, playedTile);
     }

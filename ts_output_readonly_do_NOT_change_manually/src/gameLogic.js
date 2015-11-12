@@ -129,9 +129,9 @@ var gameLogic;
         }
         return points;
     }
-    function validateTiles(tile, boardTile) {
-        if (tile.rightNumber !== boardTile.rightNumber && tile.rightNumber !== boardTile.leftNumber &&
-            tile.leftNumber !== boardTile.rightNumber && tile.leftNumber !== boardTile.leftNumber) {
+    function validateTiles(tile, currentNumber) {
+        if (tile.rightNumber !== currentNumber &&
+            tile.leftNumber !== currentNumber) {
             throw new Error("Cannot place tile at the board! Numbers are invalid.");
         }
     }
@@ -215,13 +215,13 @@ var gameLogic;
         else if (play === Play.RIGHT) {
             var tile = stateAfterMove[playedTileKey];
             var rightTile = stateAfterMove[board.rightMost];
-            validateTiles(tile, rightTile);
+            validateTiles(tile, board.currentRight);
             addTileToTheRight(board, playedTile);
         }
         else {
             var tile = stateAfterMove[playedTileKey];
             var leftTile = stateAfterMove[board.leftMost];
-            validateTiles(tile, leftTile);
+            validateTiles(tile, board.currentLeft);
             addTileToTheLeft(board, playedTile);
         }
         removeTileFromHand(player, playedTileKey);

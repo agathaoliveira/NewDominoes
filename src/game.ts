@@ -63,6 +63,8 @@ module game {
   function sendComputerMove() {
     var leftNumber = getBoardNumber(false, getHighestLeftTree());
     var rightNumber = getBoardNumber(true, getHighestRightTree());
+    state.board.currentLeft = leftNumber;
+    state.board.currentRight = rightNumber;
     log.info("sendComputerMove(): Calling make move for computer move for left number: " + leftNumber + " and right number " + rightNumber);
     gameService.makeMove(
         aiService.createComputerMove(turnIndex, state, leftNumber, rightNumber));
@@ -200,6 +202,12 @@ module game {
       let play = isRightTree(treeId) ? Play.RIGHT : Play.LEFT;
       let tileKey = $rootScope.selectedTile;
       state.delta = { play: play, tileKey: tileKey };
+      var leftNumber = getBoardNumber(false, getHighestLeftTree());
+      var rightNumber = getBoardNumber(true, getHighestRightTree());
+
+      state.board.currentLeft = leftNumber;
+      state.board.currentRight = rightNumber;
+
       let move = gameLogic.createMove(state, turnIndex, { play: play, tileKey: tileKey }, state);
       canMakeMove = false; // to prevent making another move
       log.info("placeTileOnTree(): Making move to place tile on tree. Calling makeMove with move " + JSON.stringify(move));
