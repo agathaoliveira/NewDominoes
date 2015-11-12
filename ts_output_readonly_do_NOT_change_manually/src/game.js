@@ -543,7 +543,10 @@ var game;
     game.getFinalScore = getFinalScore;
     function getPlayerIconSource(player) {
         var imageNumber = player % 2; //2 is chosen because there are only two images.
-        return "imgs/player/image" + player + ".svg";
+        if (imageNumber < 0 || imageNumber === -0) {
+            imageNumber = 0;
+        }
+        return "imgs/player/image" + imageNumber + ".svg";
     }
     game.getPlayerIconSource = getPlayerIconSource;
     function handleDragEvent(type, clientX, clientY) {

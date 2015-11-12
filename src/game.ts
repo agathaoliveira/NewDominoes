@@ -593,7 +593,9 @@ module game {
   export function getPlayerIconSource(player: number): string
   {
     var imageNumber = player % 2; //2 is chosen because there are only two images.
-    return "imgs/player/image" + player + ".svg";
+    if (imageNumber < 0 || imageNumber === -0){ imageNumber = 0; }
+    
+    return "imgs/player/image" + imageNumber + ".svg";
   }
 
   function handleDragEvent(type: string, clientX: number, clientY: number) {
