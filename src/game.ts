@@ -430,6 +430,7 @@ module game {
 
     //parent was flipped
     var parentFlipped = false;
+    if (tileLevel === 0) { return "regular"; }
     if (!!tileOrientation[tree])
     { parentFlipped = tileOrientation[tree][tileLevel-1] === "flipped";}
     else {
