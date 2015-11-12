@@ -110,6 +110,7 @@
 <div id="gameArea">
   <!-- First row: Area for other player's tiles -->
   <div class="opponents">
+    <button id="passbtn" type="button" class="btn" ng-click="game.passPlay()" ng-if="!hasGameEnded">{{ 'PASS' | translate }}</button>
     <div class="opponent" ng-repeat="player in game.getOpponentIds(yourPlayerIndex)" style="width: {{100 / game.getNumberOfPlayers()}}%;height:100%">
       <img src="{{ game.getPlayerIconSource(player) }}" class="opponentIcon">
       <h5 ng-if="hasGameEnded" class="scoreText">Score: {{ game.getFinalScore(player) }}</h5>
@@ -150,12 +151,10 @@
     <img ng-repeat="tile in [22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9]" ng-src="{{ game.getImageSource(tile, 7) }}"
     ng-if="game.shouldShowImage(tile, 7)" ng-class="{tree5Tile: game.getImageClass(tile, 7, 'tree5Tile'), tree5TileFlip: game.getImageClass(tile, 7, 'tree5TileFlip'), enLar: game.shouldEnlarge(tile, 7)}">
   </div>
-
 </div>
 
   <!-- Third row: area for current player's tiles -->
   <div class="currentPlayer">
-      <button id="passbtn" type="button" class="btn" ng-click="game.passPlay()" ng-if="!hasGameEnded">{{ 'PASS' | translate }}</button>
       <img src="{{ game.getPlayerIconSource(yourPlayerIndex) }}" class="currentPlayerIcon">
       <h5 ng-if="hasGameEnded" class="scoreText">Score: {{ game.getFinalScore(yourPlayerIndex) }}</h5>
       <img ng-repeat="tile in game.getNumberOfTilesForPlayer(yourPlayerIndex)"
