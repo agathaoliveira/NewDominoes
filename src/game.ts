@@ -49,6 +49,8 @@ module game {
     if (!!tileOrientation[3]) { return 3;}
     if (!!tileOrientation[4]) { return 4;}
     if (!!tileOrientation[5]) { return 5;}
+
+    return undefined;
   }
 
   function getHighestRightTree(): number
@@ -58,6 +60,8 @@ module game {
     if (!!tileOrientation[6]) { return 6;}
     if (!!tileOrientation[1]) { return 1;}
     if (!!tileOrientation[0]) { return 0;}
+
+    return undefined;
   }
 
   function sendComputerMove() {
@@ -72,7 +76,7 @@ module game {
   {
     let board = state.board;
 
-    if (board === undefined) { return undefined; }
+    if (board === undefined || tree === undefined) { return undefined; }
 
     if (isRight)
     {
@@ -577,14 +581,19 @@ module game {
   */
   function constructImageUrl(tile: ITile) : string
   {
+    var imageUrl: string;
     if (tile === undefined || tile === null)
     {
-        return "imgs/dominoes/domino-blank.svg";
+
+        imageUrl = "imgs/dominoes/domino-blank.svg";
     }
 
-    return tile.leftNumber <= tile.rightNumber ?
+    imageUrl = tile.leftNumber <= tile.rightNumber ?
       "imgs/dominoes/domino-" + tile.leftNumber + "-" + tile.rightNumber + ".svg" :
       "imgs/dominoes/domino-" + tile.rightNumber + "-" + tile.leftNumber + ".svg";
+
+    log.info("constructImageUrl(): URL is " + imageUrl);
+    return imageUrl;
   }
 
   export function getFinalScore(player: number): string
@@ -596,7 +605,11 @@ module game {
   export function getPlayerIconSource(player: number): string
   {
     var imageNumber = player % 2; //2 is chosen because there are only two images.
-    return "imgs/player/image" + player + ".svg";
+    var iconSource: string = "imgs/player/image" + player + ".svg";
+
+    log.info("getPlayerIconSource(): Source is " + iconSource);
+
+    return iconSource;
   }
 
   function handleDragEvent(type: string, clientX: number, clientY: number) {

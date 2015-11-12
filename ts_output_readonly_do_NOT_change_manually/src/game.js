@@ -52,6 +52,7 @@ var game;
         if (!!tileOrientation[5]) {
             return 5;
         }
+        return undefined;
     }
     function getHighestRightTree() {
         if (!!tileOrientation[8]) {
@@ -69,6 +70,7 @@ var game;
         if (!!tileOrientation[0]) {
             return 0;
         }
+        return undefined;
     }
     function sendComputerMove() {
         var leftNumber = getBoardNumber(false, getHighestLeftTree());
@@ -78,7 +80,7 @@ var game;
     }
     function getBoardNumber(isRight, tree) {
         var board = state.board;
-        if (board === undefined) {
+        if (board === undefined || tree === undefined) {
             return undefined;
         }
         if (isRight) {
@@ -535,12 +537,15 @@ var game;
     * Also take into consideration that the lower number of the tile is always on the left of the name.
     */
     function constructImageUrl(tile) {
+        var imageUrl;
         if (tile === undefined || tile === null) {
-            return "imgs/dominoes/domino-blank.svg";
+            imageUrl = "imgs/dominoes/domino-blank.svg";
         }
-        return tile.leftNumber <= tile.rightNumber ?
+        imageUrl = tile.leftNumber <= tile.rightNumber ?
             "imgs/dominoes/domino-" + tile.leftNumber + "-" + tile.rightNumber + ".svg" :
             "imgs/dominoes/domino-" + tile.rightNumber + "-" + tile.leftNumber + ".svg";
+        log.info("constructImageUrl(): URL is " + imageUrl);
+        return imageUrl;
     }
     function getFinalScore(player) {
         var scores = $rootScope.scores;
@@ -549,7 +554,9 @@ var game;
     game.getFinalScore = getFinalScore;
     function getPlayerIconSource(player) {
         var imageNumber = player % 2; //2 is chosen because there are only two images.
-        return "imgs/player/image" + player + ".svg";
+        var iconSource = "imgs/player/image" + player + ".svg";
+        log.info("getPlayerIconSource(): Source is " + iconSource);
+        return iconSource;
     }
     game.getPlayerIconSource = getPlayerIconSource;
     function handleDragEvent(type, clientX, clientY) {
