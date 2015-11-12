@@ -355,6 +355,7 @@ module gameLogic {
 
       validateTiles(tile, rightTile);
       board.currentRight = rightTile;
+      board.currentLeft = stateAfterMove.board.currentLeft;
 
       addTileToTheRight(board, playedTile);
     }
@@ -365,6 +366,7 @@ module gameLogic {
 
       validateTiles(tile, leftTile);
       board.currentLeft = leftTile;
+      board.currentRight = stateAfterMove.board.currentRight;
 
       addTileToTheLeft(board, playedTile);
     }

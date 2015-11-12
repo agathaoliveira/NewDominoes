@@ -217,6 +217,7 @@ var gameLogic;
             var rightTile = stateAfterMove.board.currentRight;
             validateTiles(tile, rightTile);
             board.currentRight = rightTile;
+            board.currentLeft = stateAfterMove.board.currentLeft;
             addTileToTheRight(board, playedTile);
         }
         else {
@@ -224,6 +225,7 @@ var gameLogic;
             var leftTile = stateAfterMove.board.currentLeft;
             validateTiles(tile, leftTile);
             board.currentLeft = leftTile;
+            board.currentRight = stateAfterMove.board.currentRight;
             addTileToTheLeft(board, playedTile);
         }
         removeTileFromHand(player, playedTileKey);
