@@ -320,13 +320,13 @@ var gameLogic;
             //  console.log("---------------------")
             //  console.log("EXPECTED: " + JSON.stringify(expectedMove));
             if (!angular.equals(move, expectedMove)) {
-                //  logDiffToConsole(move, expectedMove);
+                logDiffToConsole(move, expectedMove);
                 return false;
             }
         }
         catch (e) {
             // if there are any exceptions then the move is illegal
-            // console.log("EXCEPTION ON IS MOVE OK: " + e);
+            console.log("EXCEPTION ON IS MOVE OK: " + e);
             return false;
         }
         return true;
