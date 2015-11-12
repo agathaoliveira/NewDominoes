@@ -605,8 +605,7 @@ module game {
   export function getPlayerIconSource(player: number): string
   {
     var imageNumber = player % 2; //2 is chosen because there are only two images.
-    if (imageNumber < 0) { imageNumber = 0; }
-    var iconSource: string = "imgs/player/image" + imageNumber + ".svg";
+    var iconSource: string = "imgs/player/image" + player + ".svg";
 
     log.info("getPlayerIconSource(): Source is " + iconSource);
 
