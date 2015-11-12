@@ -215,13 +215,13 @@ var gameLogic;
         else if (play === Play.RIGHT) {
             var tile = stateAfterMove[playedTileKey];
             var rightTile = stateAfterMove[board.rightMost];
-            validateTiles(tile, board.currentRight);
+            validateTiles(tile, stateAfterMove.board.currentRight);
             addTileToTheRight(board, playedTile);
         }
         else {
             var tile = stateAfterMove[playedTileKey];
             var leftTile = stateAfterMove[board.leftMost];
-            validateTiles(tile, board.currentLeft);
+            validateTiles(tile, stateAfterMove.board.currentLeft);
             addTileToTheLeft(board, playedTile);
         }
         removeTileFromHand(player, playedTileKey);

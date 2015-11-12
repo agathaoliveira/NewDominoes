@@ -353,7 +353,7 @@ module gameLogic {
       var tile: ITile = stateAfterMove[playedTileKey];
       var rightTile: ITile = stateAfterMove[board.rightMost];
 
-      validateTiles(tile, board.currentRight);
+      validateTiles(tile, stateAfterMove.board.currentRight);
 
       addTileToTheRight(board, playedTile);
     }
@@ -362,7 +362,7 @@ module gameLogic {
       var tile: ITile = stateAfterMove[playedTileKey];
       var leftTile: ITile = stateAfterMove[board.leftMost];
 
-      validateTiles(tile, board.currentLeft);
+      validateTiles(tile, stateAfterMove.board.currentLeft);
 
       addTileToTheLeft(board, playedTile);
     }
