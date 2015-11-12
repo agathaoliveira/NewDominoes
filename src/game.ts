@@ -480,6 +480,8 @@ module game {
       return classForComparison === treeClasses[tree][tileLevel];
     }
 
+    if (tileLevel === 0) { return "rootTile"; }
+
     var orientation: string = getTileOrientation(tileLevel, tree);
     var imageClass: string = getClassForTree(tree, orientation === "flipped");
 

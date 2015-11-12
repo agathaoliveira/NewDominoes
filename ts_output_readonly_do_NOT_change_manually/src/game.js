@@ -439,6 +439,9 @@ var game;
         if (!!treeClasses[tree] && !!treeClasses[tree][tileLevel]) {
             return classForComparison === treeClasses[tree][tileLevel];
         }
+        if (tileLevel === 0) {
+            return "rootTile";
+        }
         var orientation = getTileOrientation(tileLevel, tree);
         var imageClass = getClassForTree(tree, orientation === "flipped");
         if (!treeClasses[tree]) {
