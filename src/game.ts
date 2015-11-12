@@ -182,7 +182,7 @@ module game {
       log.info("Making move to pass");
       gameService.makeMove(move);
     } catch (e) {
-      log.error(["Cannot make play for tree:", treeId]);
+      log.info(["Cannot make play for tree:", treeId]);
       return;
     }
   }
@@ -206,7 +206,7 @@ module game {
       $rootScope.selectedTile = undefined;
       gameService.makeMove(move);
     } catch (e) {
-      log.error(["Cannot make play for tree:", treeId]);
+      log.info(["Cannot make play for tree:", treeId]);
       return;
     }
   }
@@ -255,7 +255,7 @@ module game {
       gameService.makeMove(move);
 
     } catch (e) {
-      log.error(["Cannot make buy play for tile:", tileIndex]);
+      log.info(["Cannot make buy play for tile:", tileIndex]);
       return;
     }
   }
@@ -594,7 +594,7 @@ module game {
   {
     var imageNumber = player % 2; //2 is chosen because there are only two images.
     if (imageNumber < 0 || imageNumber === -0){ imageNumber = 0; }
-    
+
     return "imgs/player/image" + imageNumber + ".svg";
   }
 

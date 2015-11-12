@@ -169,7 +169,7 @@ var game;
             gameService.makeMove(move);
         }
         catch (e) {
-            log.error(["Cannot make play for tree:", treeId]);
+            log.info(["Cannot make play for tree:", treeId]);
             return;
         }
     }
@@ -193,7 +193,7 @@ var game;
             gameService.makeMove(move);
         }
         catch (e) {
-            log.error(["Cannot make play for tree:", treeId]);
+            log.info(["Cannot make play for tree:", treeId]);
             return;
         }
     }
@@ -232,7 +232,7 @@ var game;
             gameService.makeMove(move);
         }
         catch (e) {
-            log.error(["Cannot make buy play for tile:", tileIndex]);
+            log.info(["Cannot make buy play for tile:", tileIndex]);
             return;
         }
     }
