@@ -59,12 +59,13 @@
   overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
+  -webkit-overflow-scrolling: touch;
 }
 
 .currentPlayerIcon{
   top: 80%;
-  height: 80%;
-  width: 4%;
+  height: 90%;
+  width: 8%;
   left: 0;
   border: 0 0;
   margin: 0 0;
@@ -73,7 +74,7 @@
 .currentPlayerTile{
   height: 100%;
   width: 4%;
-  margin: 0 4% 0 0;
+  margin: 0 2% 0 2%;
 }
 
 .game{
