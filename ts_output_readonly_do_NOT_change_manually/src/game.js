@@ -554,7 +554,10 @@ var game;
     game.getFinalScore = getFinalScore;
     function getPlayerIconSource(player) {
         var imageNumber = player % 2; //2 is chosen because there are only two images.
-        var iconSource = "imgs/player/image" + player + ".svg";
+        if (imageNumber < 0) {
+            imageNumber = 0;
+        }
+        var iconSource = "imgs/player/image" + imageNumber + ".svg";
         log.info("getPlayerIconSource(): Source is " + iconSource);
         return iconSource;
     }

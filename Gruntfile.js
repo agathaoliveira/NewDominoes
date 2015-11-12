@@ -88,7 +88,8 @@ module.exports = function(grunt) {
             'imgs/dominoes/domino-6-6.svg',
             'imgs/dominoes/domino-blank.svg',
             'imgs/player/image0.svg',
-            'imgs/player/image1.svg'
+            'imgs/player/image1.svg',
+            'imgs/player/image-2.svg'
           ],
           network: [
             'dist/everything.min.js.map',
