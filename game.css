@@ -56,7 +56,7 @@
   left:0;
   width:90%;
   height:22%;
-  overflow-x: scroll;
+  overflow-x: auto;
   overflow-y: hidden;
   white-space: nowrap;
 }
