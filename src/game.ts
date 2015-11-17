@@ -519,7 +519,7 @@ module game {
 
   export function isSelectedTile(tileIndex: number, playerId: number): boolean
   {
-    var tileKey = state.players[playerId] ? state.players[playerId][tileIndex] : undefined;
+    var tileKey = state.players[playerId] ? state.players[playerId].hand[tileIndex] : undefined;
     return $rootScope.selectedTile === undefined ? false : $rootScope.selectedTile === tileKey;
   }
 

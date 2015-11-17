@@ -491,7 +491,7 @@ var game;
     }
     game.getPlayerIconSource = getPlayerIconSource;
     function isSelectedTile(tileIndex, playerId) {
-        var tileKey = state.players[playerId] ? state.players[playerId][tileIndex] : undefined;
+        var tileKey = state.players[playerId] ? state.players[playerId].hand[tileIndex] : undefined;
         return $rootScope.selectedTile === undefined ? false : $rootScope.selectedTile === tileKey;
     }
     game.isSelectedTile = isSelectedTile;
