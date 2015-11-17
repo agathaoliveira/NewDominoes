@@ -204,6 +204,11 @@ var game;
             state.delta = { play: play, tileKey: tileKey };
             var leftNumber = getBoardNumber(false, getHighestLeftTree());
             var rightNumber = getBoardNumber(true, getHighestRightTree());
+            //It is the first tile
+            if (leftNumber === undefined && rightNumber === undefined) {
+                leftNumber = state[tileKey].leftNumber;
+                rightNumber = state[tileKey].rightNumber;
+            }
             state.board.currentLeft = leftNumber;
             state.board.currentRight = rightNumber;
             var move = gameLogic.createMove(state, turnIndex, { play: play, tileKey: tileKey }, state);
@@ -495,6 +500,27 @@ var game;
         return $rootScope.selectedTile === undefined ? false : $rootScope.selectedTile === tileKey;
     }
     game.isSelectedTile = isSelectedTile;
+    function isPassAllowed(playerIndex) {
+        var canStartOrBuy = (!state.board || !state.board.root) ? canStartGame(playerIndex) : canBuy();
+        ;
+        return !$rootScope.hasGameEnded && !canStartOrBuy;
+    }
+    game.isPassAllowed = isPassAllowed;
+    function canBuy() {
+        return state.house && state.house.hand && state.house.hand.length !== 0;
+    }
+    function canStartGame(playerIndex) {
+        if ((state.board && state.board.root) || !state.players || !state.players[playerIndex] || !state.players[playerIndex].hand) {
+            return false;
+        }
+        for (var i = 0; i < state.players[playerIndex].hand.length; i++) {
+            var tile = state[state.players[playerIndex].hand[i]];
+            if (tile.leftNumber === tile.rightNumber) {
+                return true;
+            }
+        }
+        return false;
+    }
     // function handleDragEvent(type: string, clientX: number, clientY: number) {
     //   var el = angular.element(document.elementFromPoint(clientX, clientY));
     //       if( !dragEl && el.hasClass('checker') ) {

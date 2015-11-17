@@ -218,6 +218,13 @@ module game {
       var leftNumber = getBoardNumber(false, getHighestLeftTree());
       var rightNumber = getBoardNumber(true, getHighestRightTree());
 
+      //It is the first tile
+      if (leftNumber === undefined && rightNumber === undefined)
+      {
+        leftNumber = state[tileKey].leftNumber;
+        rightNumber = state[tileKey].rightNumber;
+      }
+
       state.board.currentLeft = leftNumber;
       state.board.currentRight = rightNumber;
 
@@ -521,6 +528,34 @@ module game {
   {
     var tileKey = state.players[playerId] ? state.players[playerId].hand[tileIndex] : undefined;
     return $rootScope.selectedTile === undefined ? false : $rootScope.selectedTile === tileKey;
+  }
+
+  export function isPassAllowed(playerIndex: number): boolean
+  {
+    var canStartOrBuy: boolean = (!state.board || !state.board.root) ? canStartGame(playerIndex) : canBuy();
+                    ;
+    return !$rootScope.hasGameEnded && !canStartOrBuy;
+  }
+
+  function canBuy(): boolean
+  {
+    return state.house && state.house.hand && state.house.hand.length !== 0;
+  }
+
+  function canStartGame(playerIndex: number): boolean
+  {
+    if ((state.board && state.board.root) || !state.players || !state.players[playerIndex] || !state.players[playerIndex].hand){ return false; }
+    for (var i = 0; i < state.players[playerIndex].hand.length; i++)
+    {
+      var tile: ITIle = state[state.players[playerIndex].hand[i]];
+      if (tile.leftNumber === tile.rightNumber)
+      {
+        return true;
+      }
+    }
+
+    return false;
+
   }
 
   // function handleDragEvent(type: string, clientX: number, clientY: number) {

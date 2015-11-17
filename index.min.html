@@ -94,11 +94,10 @@
 <div id="gameArea">
   <!-- First row: Area for other player's tiles -->
   <div class="opponents">
-    <button id="passbtn" type="button" class="btn" ng-click="game.passPlay()" ng-if="!hasGameEnded">{{ 'PASS' | translate }}</button>
     <div class="opponent" ng-repeat="player in game.getOpponentIds(yourPlayerIndex)" style="width: {{100 / game.getNumberOfPlayers()}}%;height:100%">
-      <img src="{{ game.getPlayerIconSource(player) }}" class="opponentIcon">
+      <img ng-src="{{ game.getPlayerIconSource(player) }}" class="opponentIcon">
       <h5 ng-if="hasGameEnded" class="scoreText">Score: {{ game.getFinalScore(player) }}</h5>
-      <img ng-repeat="tile in game.getNumberOfTilesForPlayer(player)" src="{{ game.getTileImageSourceForPlayer(player, tile) }}" class="opponentTile">
+      <img ng-repeat="tile in game.getNumberOfTilesForPlayer(player)" ng-src="{{ game.getTileImageSourceForPlayer(player, tile) }}" class="opponentTile">
     </div>
   </div>
 
@@ -139,12 +138,13 @@
 
   <!-- Third row: area for current player's tiles -->
   <div class="currentPlayer">
-      <img src="{{ game.getPlayerIconSource(yourPlayerIndex) }}" class="currentPlayerIcon">
+      <button id="passbtn" type="button" class="btn" ng-click="game.passPlay()" ng-if="game.isPassAllowed(yourPlayerIndex)">{{ 'PASS' | translate }}</button>
+      <img ng-src="{{ game.getPlayerIconSource(yourPlayerIndex) }}" class="currentPlayerIcon">
       <h5 ng-if="hasGameEnded" class="scoreText">Score: {{ game.getFinalScore(yourPlayerIndex) }}</h5>
       <img ng-repeat="tile in game.getNumberOfTilesForPlayer(yourPlayerIndex)"
-      src="{{ game.getTileImageSourceForPlayer(yourPlayerIndex, tile) }}"
+      ng-src="{{ game.getTileImageSourceForPlayer(yourPlayerIndex, tile) }}"
       ng-click="game.registerSelectedPlayerTile(tile)"
-      ng-class="{currentPlayerTile: true, slowlyAppear: game.shouldSlowlyAppear(tile, yourPlayerIndex)}">
+      ng-class="{currentPlayerTile: true, slowlyAppear: game.shouldSlowlyAppear(tile, yourPlayerIndex), selectedTile: game.isSelectedTile(tile, yourPlayerIndex)}">
   </div>
 
   <!-- Right Side: area for house tiles -->
