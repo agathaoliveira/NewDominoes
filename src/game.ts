@@ -52,6 +52,7 @@ module game {
     tileOrientationCache = [];
     $rootScope.yourPlayerIndex = params.yourPlayerIndex;
     $rootScope.turnIndex = params.turnIndexAfterMove;
+    $rootScope.hasGameEnded = false;
 
     //Reset caches
     populateCaches(0, 0, undefined);
