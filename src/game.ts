@@ -4,9 +4,20 @@ module game {
   let isComputerTurn = false;
   let state: IState = null;
   let turnIndex: number = null;
-  let treeSources: string[][] = [];
-  let treeClasses: string[][] = [];
-  let tileOrientation: string[][] = [];
+  let treeStructure: number[][] = [
+    [0], //tree0
+    [1, 2, 3, 4, 5, 6, 7], //tree1
+    [1, 2, 3, 4, 5, 6], //tree2
+    [7], //tree3
+    [8], //tree4
+    [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22], //tree5
+    [8], //tree6
+    [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22] //tree7
+  ];
+  let treeSourcesCache: string[][] = [];
+  let treeClassesCache: string[][] = [];
+  let tileOrientationCache: string[][] = [];
+  let tileCache: ITile[][] = [];
   let gameArea = document.getElementById("gameArea");
   let currentPlayerArea = document.getElementById("currentPlayer");
   var isUndefinedOrNull = function (val) {
@@ -33,71 +44,17 @@ module game {
     document.addEventListener("oanimationend", animationEndedCallback, false); // Opera
   }
 
-  function animationEndedCallback() {
-    $rootScope.$apply(function () {
-      log.info("Animation ended");
-      animationEnded = true;
-      if (isComputerTurn) {
-        sendComputerMove();
-      }
-    });
-  }
-
-  function getHighestLeftTree(): number
-  {
-    if (!!tileOrientation[2]) { return 2;}
-    if (!!tileOrientation[3]) { return 3;}
-    if (!!tileOrientation[4]) { return 4;}
-    if (!!tileOrientation[5]) { return 5;}
-  }
-
-  function getHighestRightTree(): number
-  {
-    if (!!tileOrientation[8]) { return 8;}
-    if (!!tileOrientation[7]) { return 7;}
-    if (!!tileOrientation[6]) { return 6;}
-    if (!!tileOrientation[1]) { return 1;}
-    if (!!tileOrientation[0]) { return 0;}
-  }
-
-  function sendComputerMove() {
-    var leftNumber = getBoardNumber(false, getHighestLeftTree());
-    var rightNumber = getBoardNumber(true, getHighestRightTree());
-    state.board.currentLeft = leftNumber;
-    state.board.currentRight = rightNumber;
-    log.info("sendComputerMove(): Calling make move for computer move for left number: " + leftNumber + " and right number " + rightNumber);
-    gameService.makeMove(
-        aiService.createComputerMove(turnIndex, state, leftNumber, rightNumber));
-  }
-
-  function getBoardNumber(isRight: boolean, tree: number): number
-  {
-    let board = state.board;
-
-    if (board === undefined) { return undefined; }
-
-    if (isRight)
-    {
-      var rightLevel = getTileLevel(true, board.rightMost);
-      var rightOrientation = rightLevel === -1 ? undefined : getTileOrientation(rightLevel, tree);
-      var rightNumber = rightOrientation === undefined ? undefined : rightOrientation === "regular" ? state[board.rightMost].rightNumber : state[board.rightMost].leftNumber;
-
-      return rightNumber;
-    }
-    else
-    {
-      var leftLevel = getTileLevel(false, board.leftMost);
-      var leftOrientation = leftLevel === -1 ? undefined : getTileOrientation(leftLevel, tree);
-      var leftNumber = leftOrientation === undefined ? undefined : leftOrientation === "regular" ? state[board.leftMost].rightNumber : state[board.leftMost].leftNumber;
-
-      return leftNumber;
-    }
-  }
-
   function updateUI(params: IUpdateUI): void {
     animationEnded = false;
     state = params.stateAfterMove;
-    $rootScope.state = state;
+    treeSourcesCache = [];
+    treeClassesCache = [];
+    tileOrientationCache = [];
+    $rootScope.yourPlayerIndex = params.yourPlayerIndex;
+    $rootScope.turnIndex = params.turnIndexAfterMove;
+
+    //Reset caches
+    populateCaches(0, 0, undefined);
 
     log.info("updateUI(): updating UI.");
 
@@ -111,10 +68,8 @@ module game {
       params.yourPlayerIndex === params.turnIndexAfterMove; // it's my turn
     turnIndex = params.turnIndexAfterMove;
 
-    $rootScope.yourPlayerIndex = params.yourPlayerIndex;
-    $rootScope.turnIndex = params.turnIndexAfterMove;
-
-    if (!!state && !!state.delta && state.delta.play === Play.REVEAL)
+    //If the state exists and it is a reveal play, create an end of game play
+    if (state && state.delta && state.delta.play === Play.REVEAL)
     {
       let delta = { play: Play.END };
       state.delta = delta;
@@ -122,7 +77,8 @@ module game {
       gameService.makeMove(move);
       return;
     }
-    else if (!!state && !!state.delta && state.delta.play === Play.END)
+    //If the state exists and it was a end of game play, indicate that the game has ended and update the scores
+    else if (state && state.delta && state.delta.play === Play.END)
     {
       $rootScope.hasGameEnded = true;
       $rootScope.scores = params.endMatchScores;
@@ -132,6 +88,8 @@ module game {
 
     if (canMakeMove)
     {
+      //if the previous play was a pass move, and the current play was also a pass move, then no player can make a move.
+      //Thus, end the game
       if (wasPassMove(params.stateBeforeMove) && wasPassMove(params.stateAfterMove))
       {
         let delta = { play: Play.REVEAL };
@@ -150,13 +108,67 @@ module game {
       // We calculate the AI move only after the animation finishes,
       // because if we call aiService now
       // then the animation will be paused until the javascript finishes.
-      // if (!state.delta) {
-      //   // This is the first move in the match, so
-      //   // there is not going to be an animation, so
-      //   // call sendComputerMove() now (can happen in ?onlyAIs mode)
-      //
-      // }
       sendComputerMove();
+    }
+  }
+
+  function animationEndedCallback() {
+    $rootScope.$apply(function () {
+      log.info("Animation ended");
+      animationEnded = true;
+      if (isComputerTurn) {
+        sendComputerMove();
+      }
+    });
+  }
+
+  function getHighestLeftTree(): number
+  {
+    if (tileOrientationCache[5]) { return 5;}
+    if (tileOrientationCache[4]) { return 4;}
+    if (tileOrientationCache[3]) { return 3;}
+    if (tileOrientationCache[2]) { return 2;}
+    if (tileOrientationCache[0]) { return 0;}
+  }
+
+  function getHighestRightTree(): number
+  {
+    if (tileOrientationCache[8]) { return 8;}
+    if (tileOrientationCache[7]) { return 7;}
+    if (tileOrientationCache[6]) { return 6;}
+    if (tileOrientationCache[1]) { return 1;}
+    if (tileOrientationCache[0]) { return 0;}
+  }
+
+  function sendComputerMove() {
+    var leftNumber = getBoardNumber(false, getHighestLeftTree());
+    var rightNumber = getBoardNumber(true, getHighestRightTree());
+    state.board.currentLeft = leftNumber;
+    state.board.currentRight = rightNumber;
+    log.info("sendComputerMove(): Calling make move for computer move for left number: " + leftNumber + " and right number " + rightNumber);
+    gameService.makeMove(
+        aiService.createComputerMove(turnIndex, state, leftNumber, rightNumber));
+  }
+
+  function getBoardNumber(isRight: boolean, tree: number): number
+  {
+    var tileKey = !tileCache[tree] ? undefined : tileCache[tree][tileCache[tree].length - 1].tileKey;
+    var tile = !tileKey ? undefined : state[tileKey];
+    var orientation = !tileOrientationCache[tree] ? undefined :
+        tileOrientationCache[tree][tileOrientationCache[tree].length - 1];
+
+    if (isRight)
+    {
+      var rightNumber = orientation === undefined ? undefined : orientation === "regular" ?
+                        tile.rightNumber : tile.leftNumber;
+      return rightNumber;
+    }
+    else
+    {
+      var leftNumber = orientation === undefined ? undefined : orientation === "regular" ?
+            tile.rightNumber : tile.leftNumber;
+
+      return leftNumber;
     }
   }
 
@@ -184,7 +196,7 @@ module game {
       log.info("Making move to pass");
       gameService.makeMove(move);
     } catch (e) {
-      log.info(["Cannot make play for tree:", treeId]);
+      log.info("Cannot make pass play");
       return;
     }
   }
@@ -283,7 +295,7 @@ module game {
     return result;
   }
 
-  export function getNumberOfTilesForBoneYard(): number
+  export function getNumberOfTilesForBoneYard(): number[]
   {
     if (!state.house || !state.house.hand)
     {
@@ -321,34 +333,12 @@ module game {
 
   function getTileAt(tileLevel: number, tree: number): ITile
   {
-    let board = state.board;
-
-    if (!board || !board.root)
+    if (tileCache[tree])
     {
-      return undefined;
+      return tileCache[tree][tileLevel];
     }
 
-    var tile: ITile;
-    //Root tile
-    if (tree === 0)
-    {
-      if (tileLevel != 0) { return undefined; }
-      tile = board.root;
-    }
-    else
-    {
-      //Check if tile at level (i) exists for right or left tree
-      var i = 1;
-      tile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
-
-      while (i !== tileLevel && tile !== undefined)
-      {
-        i++;
-        tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
-      }
-    }
-
-    return tile;
+    return undefined;
   }
 
   /* Decide if tile with this numebr should be shown. The tree parameter defines
@@ -380,6 +370,28 @@ module game {
     if (tree === 5) { return 4; }
   }
 
+  function getTreeAfter(tree: number, isRight: boolean):number
+  {
+    if (isRight)
+    {
+      if (tree === 0){ return 1;}
+      if (tree === 1){ return 6;}
+      if (tree === 6){ return 7;}
+      if (tree === 7){ return 8;}
+
+      return undefined;
+    }
+    else
+    {
+      if (tree === 0){ return 2;}
+      if (tree === 2){ return 3;}
+      if (tree === 3){ return 4;}
+      if (tree === 4){ return 5;}
+
+      return undefined;
+    }
+  }
+
   export function getTileLevel(isRight: boolean, tileKey: string): number
   {
     if (state.board === undefined || state.board.root === undefined) { return -1; }
@@ -405,98 +417,23 @@ module game {
 
   export function getTileOrientation(tileLevel: number, tree: number):string{
 
-    if (!!tileOrientation[tree] && !!tileOrientation[tree][tileLevel])
+    if (tileOrientationCache[tree] && tileOrientationCache[tree][tileLevel])
     {
-      return tileOrientation[tree][tileLevel];
+      return tileOrientationCache[tree][tileLevel];
     }
 
-    var board: IBoard = state.board;
-
-    if (board.leftMost === board.root.tileKey && board.rightMost === board.root.tileKey)
-    {
-      var orientation: string = "regular";
-      tileOrientation[tree] = [];
-      tileOrientation[tree][tileLevel] = orientation;
-      return orientation;
-    }
-
-    var parent:ITile = board.root;
-    //Check if tile at level (i) exists for right or left tree
-    var flipped: boolean = false;
-    var i = 1;
-    var tile: ITile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
-
-    while (i !== tileLevel && tile !== undefined)
-    {
-      parent = tile;
-      i++;
-      tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
-    }
-
-    tile = tile === undefined ? undefined : state[tile.tileKey];
-    parent = parent === undefined ? undefined : state[parent.tileKey];
-
-    //parent was flipped
-    var parentFlipped = false;
-    if (!!tileOrientation[tree])
-    { parentFlipped = tileOrientation[tree][tileLevel-1] === "flipped";}
-    else {
-      var previousTree: number = getTreeBefore(tree);
-      parentFlipped = tileOrientation[previousTree][tileLevel-1] === "flipped";
-    }
-
-    if (tile !== undefined)
-    {
-      if (!parentFlipped && parent.leftNumber >= parent.rightNumber)
-      {
-        if (tile.rightNumber === parent.leftNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
-        else if (tile.leftNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
-      }
-      else if (!parentFlipped && parent.rightNumber >= parent.leftNumber)
-      {
-        if (tile.rightNumber === parent.rightNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
-        else if (tile.leftNumber === parent.rightNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
-      }
-      else if (parentFlipped && parent.rightNumber <= parent.leftNumber)
-      {
-        if (tile.rightNumber === parent.rightNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
-        else if (tile.leftNumber === parent.rightNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
-      }
-      else if (parentFlipped && parent.leftNumber <= parent.rightNumber)
-      {
-        if (tile.rightNumber === parent.leftNumber && tile.rightNumber > tile.leftNumber){ flipped = true; }
-        else if (tile.leftNumber === parent.leftNumber && tile.leftNumber > tile.rightNumber) { flipped = true; }
-      }
-    }
-
-    var orientation: string = flipped ? "flipped" : "regular";
-
-    if (!tileOrientation[tree])
-    {
-      tileOrientation[tree] = [];
-    }
-    tileOrientation[tree][tileLevel] = orientation;
-    return orientation;
+    return undefined;
 
   }
 
   export function getImageClass(tileLevel: number, tree: number, classForComparison: string): boolean{
 
-    if (!!treeClasses[tree] && !!treeClasses[tree][tileLevel])
+    if (!!treeClassesCache[tree] && !!treeClassesCache[tree][tileLevel])
     {
-      return classForComparison === treeClasses[tree][tileLevel];
+      return classForComparison === treeClassesCache[tree][tileLevel];
     }
 
-    var orientation: string = getTileOrientation(tileLevel, tree);
-    var imageClass: string = getClassForTree(tree, orientation === "flipped");
-
-    if (!treeClasses[tree])
-    {
-      treeClasses[tree] = [];
-    }
-    treeClasses[tree][tileLevel] = imageClass;
-    return imageClass === classForComparison;
-
+    return undefined;
   }
 
   function getClassForTree(tree: number, flipped: boolean): string{
@@ -536,40 +473,13 @@ module game {
 
   /*Get image source for tile at the indicated level on right or left tree*/
   export function getImageSource(tileLevel: number, tree: number): string {
-    let board = state.board;
 
-    if (!!treeSources[tree] && !!treeSources[tree][tileLevel])
+    if (treeSourcesCache[tree] && treeSourcesCache[tree][tileLevel])
     {
-      return treeSources[tree][tileLevel];
+      return treeSourcesCache[tree][tileLevel];
     }
 
-    //Root tile
-    if (board.leftMost === board.root.tileKey && board.rightMost === board.root.tileKey)
-    {
-      var image: string = constructImageUrl(state[board.root.tileKey]);
-      treeSources[tree] = [];
-      treeSources[tree][tileLevel] = image;
-      return image;
-    }
-
-    var i = 1;
-    var tile: ITile = isRightTree(tree) ? board.root.rightTile : board.root.leftTile;
-
-    while (i !== tileLevel && tile !== undefined)
-    {
-      i++;
-      tile = isRightTree(tree) ? tile.rightTile : tile.leftTile;
-    }
-
-    tile = tile === undefined ? undefined : state[tile.tileKey];
-
-    var image: string = constructImageUrl(tile === undefined ? undefined : tile);
-    if (!treeSources[tree])
-    {
-      treeSources[tree] = [];
-    }
-    treeSources[tree][tileLevel] = image;
-    return image;
+    return undefined;
   }
 
   function isRightTree(tree: number): boolean
@@ -606,20 +516,154 @@ module game {
     return "imgs/player/image" + imageNumber + ".svg";
   }
 
-  function handleDragEvent(type: string, clientX: number, clientY: number) {
-    var el = angular.element(document.elementFromPoint(clientX, clientY));
-        if( !dragEl && el.hasClass('checker') ) {
-            childEl = el;
-            row = +el.attr('data-row');
-            col = +el.attr('data-col');
-            pos = childEl[0].getBoundingClientRect();
+  export function isSelectedTile(tileIndex: number, playerId: number): boolean
+  {
+    var tileKey = state.players[playerId] ? state.players[playerId][tileIndex] : undefined;
+    return $rootScope.selectedTile === undefined ? false : $rootScope.selectedTile === tileKey;
+  }
+
+  // function handleDragEvent(type: string, clientX: number, clientY: number) {
+  //   var el = angular.element(document.elementFromPoint(clientX, clientY));
+  //       if( !dragEl && el.hasClass('checker') ) {
+  //           childEl = el;
+  //           row = +el.attr('data-row');
+  //           col = +el.attr('data-col');
+  //           pos = childEl[0].getBoundingClientRect();
+  //       }
+  //       else if( el.hasClass('checkerCell') ) {
+  //           childEl = el.children();
+  //           row = +el.attr('data-row');
+  //           col = +el.attr('data-col');
+  //           pos = childEl[0].getBoundingClientRect();
+  //       }
+  // }
+
+  function populateCaches(tree: number, tileLevel: number, isRight: boolean, parent: ITile){
+
+    var board: IBoard = state.board;
+
+    var tile: ITile = undefined; //The tile
+    var flipped: boolean = false; //Whether or not the tile is flipped
+
+    if (!board || !board.root){ return; }
+
+    //if on the first tile, populate both right and left trees and then return
+    if (tileLevel === 0)
+    {
+      tile = state[board.root.tileKey];
+      var orientation: string = "regular";
+
+      if (!tileOrientationCache[tree])
+      {
+        tileOrientationCache[tree] = [];
+        treeSourcesCache[tree] = [];
+        treeClassesCache[tree] = [];
+        tileCache[tree] = [];
+      }
+      var image: string = constructImageUrl(tile === undefined ? undefined : tile);
+      var imageClass: string = getClassForTree(tree, false);
+
+      tileOrientationCache[tree][tileLevel] = orientation;
+      treeSourcesCache[tree][tileLevel] = image;
+      treeClassesCache[tree][tileLevel] = imageClass;
+      tileCache[tree][tileLevel] = board.root;
+
+      var nextTree = getTreeAfter(tree, true);
+      var nextLevel = treeStructure[nextTree][0];
+
+      populateCaches(nextTree, nextLevel, true, board.root);
+
+      nextTree = getTreeAfter(tree, false);
+      nextLevel = treeStructure[nextTree][0];
+      populateCaches(nextTree, nextLevel, false, board.root);
+
+      return;
+    }
+    else
+    {
+        tile = isRight ? parent.rightTile : parent.leftTile;
+
+        if (tile === undefined)
+        {
+          return;
         }
-        else if( el.hasClass('checkerCell') ) {
-            childEl = el.children();
-            row = +el.attr('data-row');
-            col = +el.attr('data-col');
-            pos = childEl[0].getBoundingClientRect();
+
+        var tileWithNumbers: ITile = state[tile.tileKey];
+        parent = state[parent.tileKey];
+
+        //check if parent was flipped
+        var parentFlipped = false;
+        if (tileOrientationCache[tree])
+        {
+          parentFlipped = tileOrientationCache[tree][tileLevel-1] === "flipped";
         }
+        else {
+          var previousTree: number = getTreeBefore(tree);
+          parentFlipped = tileOrientationCache[previousTree][tileOrientationCache[previousTree].length - 1] === "flipped";
+        }
+
+        if (tileWithNumbers !== undefined)
+        {
+          if (!parentFlipped && parent.leftNumber >= parent.rightNumber)
+          {
+            if (tileWithNumbers.rightNumber === parent.leftNumber && tileWithNumbers.rightNumber > tileWithNumbers.leftNumber){ flipped = true; }
+            else if (tileWithNumbers.leftNumber === parent.leftNumber && tileWithNumbers.leftNumber > tileWithNumbers.rightNumber) { flipped = true; }
+          }
+          else if (!parentFlipped && parent.rightNumber >= parent.leftNumber)
+          {
+            if (tileWithNumbers.rightNumber === parent.rightNumber && tileWithNumbers.rightNumber > tileWithNumbers.leftNumber){ flipped = true; }
+            else if (tileWithNumbers.leftNumber === parent.rightNumber && tileWithNumbers.leftNumber > tileWithNumbers.rightNumber) { flipped = true; }
+          }
+          else if (parentFlipped && parent.rightNumber <= parent.leftNumber)
+          {
+            if (tileWithNumbers.rightNumber === parent.rightNumber && tileWithNumbers.rightNumber > tileWithNumbers.leftNumber){ flipped = true; }
+            else if (tileWithNumbers.leftNumber === parent.rightNumber && tileWithNumbers.leftNumber > tileWithNumbers.rightNumber) { flipped = true; }
+          }
+          else if (parentFlipped && parent.leftNumber <= parent.rightNumber)
+          {
+            if (tileWithNumbers.rightNumber === parent.leftNumber && tileWithNumbers.rightNumber > tileWithNumbers.leftNumber){ flipped = true; }
+            else if (tileWithNumbers.leftNumber === parent.leftNumber && tileWithNumbers.leftNumber > tileWithNumbers.rightNumber) { flipped = true; }
+          }
+        }
+    }
+
+    var orientation: string = flipped ? "flipped" : "regular";
+    var image: string = constructImageUrl(tileWithNumbers === undefined ? undefined : tileWithNumbers);
+    var imageClass: string = getClassForTree(tree, orientation === "flipped");
+
+    if (!tileOrientationCache[tree])
+    {
+      tileOrientationCache[tree] = [];
+      treeSourcesCache[tree] = [];
+      treeClassesCache[tree] = [];
+      tileCache[tree] = [];
+    }
+
+    tileOrientationCache[tree][tileLevel] = orientation;
+    treeSourcesCache[tree][tileLevel] = image;
+    treeClassesCache[tree][tileLevel] = imageClass;
+    tileCache[tree][tileLevel] = tile;
+
+    //Set next tile on the tree
+    var nextTree: number;
+    var nextLevel: number;
+    //if on last tile
+    if (tileLevel === treeStructure[tree][treeStructure[tree].length - 1])
+    {
+      nextTree = getTreeAfter(tree, isRight);
+      nextLevel = nextTree === undefined ? undefined : treeStructure[nextTree][0];
+    }
+    else
+    {
+      nextTree = tree;
+      nextLevel = tileLevel + 1;
+    }
+
+    if (nextTree !== undefined)
+    {
+      populateCaches(nextTree, nextLevel, isRight, tile);
+    }
+
   }
 
 }
