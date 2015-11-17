@@ -303,7 +303,7 @@ module gameLogic {
   * who bought the tile from the house.
   */
   export function createMoveBuy(house: IPlayer, playedTileKey: string, player: IPlayer, allPlayers: IPlayer[], board: IBoard,
-    delta:BoardDelta, turnIndexBeforeMove: number): IMove
+    delta:BoardDelta, turnIndexBeforeMove: number, stateAfterMove: IState): IMove
   {
     var operations: IMove,
     visibility: ISetVisibility;
@@ -318,6 +318,9 @@ module gameLogic {
 
     visibility = {key: playedTileKey, visibleToPlayerIndexes: [turnIndexBeforeMove]};
 
+    board.currentLeft = stateAfterMove.board.currentLeft;
+    board.currentRight = stateAfterMove.board.currentRight;
+    
     allPlayers[turnIndexBeforeMove] = player;
     operations = getGenericMove(turnIndexBeforeMove, board, delta, visibility, allPlayers);
     operations = operations.concat([{set: {key: 'house', value: house}}]);
@@ -416,7 +419,7 @@ module gameLogic {
     }
     else if (Play.BUY === play)
     {
-      return createMoveBuy(houseAfterMove, playedTileKey, playerAfterMove, playersAfterMove, boardAfterMove, delta, turnIndexBeforeMove);
+      return createMoveBuy(houseAfterMove, playedTileKey, playerAfterMove, playersAfterMove, boardAfterMove, delta, turnIndexBeforeMove, stateAfterMove);
     }
     else if (Play.PASS == play)
     {

@@ -183,7 +183,7 @@ var gameLogic;
     /* In this case, the domino tile should be removed from the house and added to the player's hand. It should only be visible to the player
     * who bought the tile from the house.
     */
-    function createMoveBuy(house, playedTileKey, player, allPlayers, board, delta, turnIndexBeforeMove) {
+    function createMoveBuy(house, playedTileKey, player, allPlayers, board, delta, turnIndexBeforeMove, stateAfterMove) {
         var operations, visibility;
         if (getNumberOfRemainingTiles(house) === 0) {
             throw new Error("One cannot buy from the house when it has no tiles");
@@ -191,6 +191,8 @@ var gameLogic;
         removeTileFromHand(house, playedTileKey);
         addTileToHand(player, playedTileKey);
         visibility = { key: playedTileKey, visibleToPlayerIndexes: [turnIndexBeforeMove] };
+        board.currentLeft = stateAfterMove.board.currentLeft;
+        board.currentRight = stateAfterMove.board.currentRight;
         allPlayers[turnIndexBeforeMove] = player;
         operations = getGenericMove(turnIndexBeforeMove, board, delta, visibility, allPlayers);
         operations = operations.concat([{ set: { key: 'house', value: house } }]);
@@ -255,7 +257,7 @@ var gameLogic;
             return createMovePlay(boardAfterMove, delta, playerAfterMove, playersAfterMove, playedTileKey, turnIndexBeforeMove, play, stateAfterMove);
         }
         else if (Play.BUY === play) {
-            return createMoveBuy(houseAfterMove, playedTileKey, playerAfterMove, playersAfterMove, boardAfterMove, delta, turnIndexBeforeMove);
+            return createMoveBuy(houseAfterMove, playedTileKey, playerAfterMove, playersAfterMove, boardAfterMove, delta, turnIndexBeforeMove, stateAfterMove);
         }
         else if (Play.PASS == play) {
             return createMovePass(turnIndexBeforeMove, playersAfterMove.length, delta);
