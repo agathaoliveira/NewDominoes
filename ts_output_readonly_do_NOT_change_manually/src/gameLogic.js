@@ -213,6 +213,8 @@ var gameLogic;
                 throw new Error("First tile must be a double");
             }
             setBoardRoot(board, playedTile);
+            board.currentLeft = stateAfterMove.board.currentLeft;
+            board.currentRight = stateAfterMove.board.currentRight;
         }
         else if (play === Play.RIGHT) {
             var tile = stateAfterMove[playedTileKey];
