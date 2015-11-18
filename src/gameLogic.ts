@@ -452,7 +452,7 @@ module gameLogic {
 //   for (var k in o1) {
 //     logDiffToConsole(o1[k], o2[k]);
 //   }
-}
+// }
 
 
 /**
