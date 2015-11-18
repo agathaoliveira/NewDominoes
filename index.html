@@ -9,6 +9,10 @@
   <meta name="description" content="Dominoes game">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
+  <!-- To ensure CSS files are downloaded in parallel, always include external CSS before external JavaScript. -->
+  <link rel="stylesheet" type="text/css" href="http://yoav-zibin.github.io/emulator/main.css">
+  <link rel="stylesheet" type="text/css" href="game.css">
+
   <!-- The crossorigin attribute controls, for scripts that are obtained from other origins, whether error information will be exposed. -->
   <!-- build:js http://ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.min.js -->
   <script crossorigin="anonymous" src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular.js"></script>
@@ -35,8 +39,6 @@
   <script crossorigin="anonymous" src="http://yoav-zibin.github.io/emulator/dist/turnBasedServices.3.js"></script>
   <!-- /build -->
 
-  <link rel="stylesheet" type="text/css" href="http://yoav-zibin.github.io/emulator/main.css">
-  <link rel="stylesheet" type="text/css" href="game.css">
 </head>
 <body ng-cloak>
   <div style="position:absolute; bottom:5px; left: 5px; z-index:10;">

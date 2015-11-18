@@ -56,10 +56,9 @@ module game {
     $rootScope.hasGameEnded = false;
 
     //Reset caches
-    populateCaches(0, 0, undefined);
+    populateCaches(0, 0, undefined, undefined);
 
-    log.info("updateUI(): updating UI.");
-
+    log.info("updateUI(): ", params);
     if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
       let move = gameLogic.getInitialMove(params.numberOfPlayers);
       log.info("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
@@ -118,9 +117,7 @@ module game {
     $rootScope.$apply(function () {
       log.info("Animation ended");
       animationEnded = true;
-      if (isComputerTurn) {
-        sendComputerMove();
-      }
+      sendComputerMove();
     });
   }
 
@@ -143,6 +140,12 @@ module game {
   }
 
   function sendComputerMove() {
+
+    if (!isComputerTurn) {
+      return;
+    }
+    isComputerTurn = false; // to make sure the computer can only move once.
+
     var leftNumber = getBoardNumber(false, getHighestLeftTree());
     var rightNumber = getBoardNumber(true, getHighestRightTree());
     state.board.currentLeft = leftNumber;
@@ -549,7 +552,7 @@ module game {
     if ((state.board && state.board.root) || !state.players || !state.players[playerIndex] || !state.players[playerIndex].hand){ return false; }
     for (var i = 0; i < state.players[playerIndex].hand.length; i++)
     {
-      var tile: ITIle = state[state.players[playerIndex].hand[i]];
+      var tile: ITile = state[state.players[playerIndex].hand[i]];
       if (tile.leftNumber === tile.rightNumber)
       {
         return true;
