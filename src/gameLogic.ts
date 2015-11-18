@@ -490,7 +490,7 @@ module gameLogic {
 
       var expectedMove: IMove;
 
-      if (!params.stateBeforeMove || !params.stateBeforeMove.board || !params.stateAfterMove.board.root)
+      if (!params.stateBeforeMove || !params.stateBeforeMove.board || (!params.stateAfterMove.delta && !params.stateAfterMove.board.root))
       {
         expectedMove = getInitialMove(numberOfPlayers);
       }

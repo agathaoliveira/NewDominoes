@@ -279,6 +279,7 @@ module game {
     try
     {
       let delta = {play: Play.BUY, tileKey: state.house.hand[tileIndex]};
+      state.delta = delta;
       let move = gameLogic.createMove(state, turnIndex, delta, state);
       canMakeMove = false; // to prevent making another move
       gameService.makeMove(move);

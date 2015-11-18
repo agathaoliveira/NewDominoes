@@ -253,6 +253,7 @@ var game;
         }
         try {
             var delta = { play: Play.BUY, tileKey: state.house.hand[tileIndex] };
+            state.delta = delta;
             var move = gameLogic.createMove(state, turnIndex, delta, state);
             canMakeMove = false; // to prevent making another move
             gameService.makeMove(move);
