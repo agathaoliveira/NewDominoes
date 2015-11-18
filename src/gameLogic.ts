@@ -440,7 +440,7 @@ module gameLogic {
 }
 
 //This is a helper function for debugging
-/*function logDiffToConsole(o1, o2) {
+function logDiffToConsole(o1, o2) {
   if (angular.equals(o1, o2))
   {
     return;
@@ -452,7 +452,7 @@ module gameLogic {
   for (var k in o1) {
     logDiffToConsole(o1[k], o2[k]);
   }
-}*/
+}
 
 
 /**
@@ -488,7 +488,7 @@ module gameLogic {
 
       var expectedMove: IMove;
 
-      if (!params.stateBeforeMove || !params.stateBeforeMove.board)
+      if (!params.stateBeforeMove || !params.stateBeforeMove.board || !params.stateAfterMove.board.root)
       {
         expectedMove = getInitialMove(numberOfPlayers);
       }
@@ -504,12 +504,12 @@ module gameLogic {
             // console.log("EXPECTED: " + JSON.stringify(expectedMove));
 
       if (!angular.equals(move, expectedMove)) {
-      //  logDiffToConsole(move, expectedMove);
+        logDiffToConsole(move, expectedMove);
         return false;
       }
     } catch (e) {
       // if there are any exceptions then the move is illegal
-      //  console.log("EXCEPTION ON IS MOVE OK: " + e);
+        console.log("EXCEPTION ON IS MOVE OK: " + e);
       return false;
     }
     return true;
