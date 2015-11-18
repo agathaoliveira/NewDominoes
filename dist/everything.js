@@ -334,7 +334,7 @@ var gameLogic;
         }
         catch (e) {
             // if there are any exceptions then the move is illegal
-            console.log("EXCEPTION ON IS MOVE OK: " + e);
+            //  console.log("EXCEPTION ON IS MOVE OK: " + e);
             return false;
         }
         return true;
@@ -395,8 +395,8 @@ var gameLogic;
         $rootScope.turnIndex = params.turnIndexAfterMove;
         $rootScope.hasGameEnded = false;
         //Reset caches
-        populateCaches(0, 0, undefined);
-        log.info("updateUI(): updating UI.");
+        populateCaches(0, 0, undefined, undefined);
+        log.info("updateUI(): ", params);
         if (!state.board && params.yourPlayerIndex === params.turnIndexAfterMove) {
             var move = gameLogic.getInitialMove(params.numberOfPlayers);
             log.info("updateUI(): make initial move. Calling makeMove " + JSON.stringify(move));
@@ -446,9 +446,7 @@ var gameLogic;
         $rootScope.$apply(function () {
             log.info("Animation ended");
             animationEnded = true;
-            if (isComputerTurn) {
-                sendComputerMove();
-            }
+            sendComputerMove();
         });
     }
     function getHighestLeftTree() {
@@ -486,6 +484,10 @@ var gameLogic;
         }
     }
     function sendComputerMove() {
+        if (!isComputerTurn) {
+            return;
+        }
+        isComputerTurn = false; // to make sure the computer can only move once.
         var leftNumber = getBoardNumber(false, getHighestLeftTree());
         var rightNumber = getBoardNumber(true, getHighestRightTree());
         state.board.currentLeft = leftNumber;
