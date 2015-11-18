@@ -47,6 +47,7 @@ var game;
         treeSourcesCache = [];
         treeClassesCache = [];
         tileOrientationCache = [];
+        tileCache = [];
         $rootScope.yourPlayerIndex = params.yourPlayerIndex;
         $rootScope.turnIndex = params.turnIndexAfterMove;
         $rootScope.hasGameEnded = false;
