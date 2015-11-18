@@ -334,7 +334,7 @@ var gameLogic;
         }
         catch (e) {
             // if there are any exceptions then the move is illegal
-            console.log("EXCEPTION ON IS MOVE OK: " + e);
+            //  console.log("EXCEPTION ON IS MOVE OK: " + e);
             return false;
         }
         return true;
