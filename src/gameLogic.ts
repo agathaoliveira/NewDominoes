@@ -440,18 +440,18 @@ module gameLogic {
 }
 
 //This is a helper function for debugging
-function logDiffToConsole(o1, o2) {
-  if (angular.equals(o1, o2))
-  {
-    return;
-  }
-  console.log("Found diff between: ", o1, o2);
-  if (!angular.equals(Object.keys(o1), Object.keys(o2))) {
-    console.log("Keys different: ", JSON.stringify(Object.keys(o1)), JSON.stringify(Object.keys(o2)));
-  }
-  for (var k in o1) {
-    logDiffToConsole(o1[k], o2[k]);
-  }
+// function logDiffToConsole(o1, o2) {
+//   if (angular.equals(o1, o2))
+//   {
+//     return;
+//   }
+//   console.log("Found diff between: ", o1, o2);
+//   if (!angular.equals(Object.keys(o1), Object.keys(o2))) {
+//     console.log("Keys different: ", JSON.stringify(Object.keys(o1)), JSON.stringify(Object.keys(o2)));
+//   }
+//   for (var k in o1) {
+//     logDiffToConsole(o1[k], o2[k]);
+//   }
 }
 
 
@@ -504,7 +504,7 @@ function logDiffToConsole(o1, o2) {
             // console.log("EXPECTED: " + JSON.stringify(expectedMove));
 
       if (!angular.equals(move, expectedMove)) {
-        logDiffToConsole(move, expectedMove);
+        //logDiffToConsole(move, expectedMove);
         return false;
       }
     } catch (e) {

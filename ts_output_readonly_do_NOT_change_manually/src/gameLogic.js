@@ -273,68 +273,55 @@ var gameLogic;
         }
     }
     gameLogic.createMove = createMove;
-    //This is a helper function for debugging
-    function logDiffToConsole(o1, o2) {
-        if (angular.equals(o1, o2)) {
-            return;
+})(gameLogic || (gameLogic = {}));
+/**
+   * Check if the move is OK.
+   *
+   * @param params the match info which contains stateBeforeMove,
+   *              stateAfterMove, turnIndexBeforeMove, turnIndexAfterMove,
+   *              move.
+   * @returns return true if the move is ok, otherwise false.
+   */
+function isMoveOk(params) {
+    var move = params.move;
+    var turnIndexBeforeMove = params.turnIndexBeforeMove;
+    var stateBeforeMove = params.stateBeforeMove;
+    var numberOfPlayers = params.numberOfPlayers;
+    /*********************************************************************
+    * 1. If the stateBeforeMove is empty, then it should be the first
+    *    move. Set the board of stateBeforeMove to be the initial board.
+    *    If the stateBeforeMove is not empty, then the board should have
+    *    one or more dominoes.
+    ********************************************************************/
+    // console.log("isMoveOk(): Calling is move ok");
+    //  console.log("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
+    //  console.log("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
+    try {
+        if (numberOfPlayers > 4) {
+            throw Error("A maximum of 4 players are allowed for this game");
         }
-        console.log("Found diff between: ", o1, o2);
-        if (!angular.equals(Object.keys(o1), Object.keys(o2))) {
-            console.log("Keys different: ", JSON.stringify(Object.keys(o1)), JSON.stringify(Object.keys(o2)));
+        var expectedMove;
+        if (!params.stateBeforeMove || !params.stateBeforeMove.board || !params.stateAfterMove.board.root) {
+            expectedMove = getInitialMove(numberOfPlayers);
         }
-        for (var k in o1) {
-            logDiffToConsole(o1[k], o2[k]);
+        else {
+            expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta, params.stateAfterMove);
         }
-    }
-    /**
-       * Check if the move is OK.
-       *
-       * @param params the match info which contains stateBeforeMove,
-       *              stateAfterMove, turnIndexBeforeMove, turnIndexAfterMove,
-       *              move.
-       * @returns return true if the move is ok, otherwise false.
-       */
-    function isMoveOk(params) {
-        var move = params.move;
-        var turnIndexBeforeMove = params.turnIndexBeforeMove;
-        var stateBeforeMove = params.stateBeforeMove;
-        var numberOfPlayers = params.numberOfPlayers;
-        /*********************************************************************
-        * 1. If the stateBeforeMove is empty, then it should be the first
-        *    move. Set the board of stateBeforeMove to be the initial board.
-        *    If the stateBeforeMove is not empty, then the board should have
-        *    one or more dominoes.
-        ********************************************************************/
-        // console.log("isMoveOk(): Calling is move ok");
-        //  console.log("isMoveOk(): State Before is " + JSON.stringify(stateBeforeMove));
-        //  console.log("isMoveOk():  State after is" + JSON.stringify(params.stateAfterMove));
-        try {
-            if (numberOfPlayers > 4) {
-                throw Error("A maximum of 4 players are allowed for this game");
-            }
-            var expectedMove;
-            if (!params.stateBeforeMove || !params.stateBeforeMove.board || !params.stateAfterMove.board.root) {
-                expectedMove = getInitialMove(numberOfPlayers);
-            }
-            else {
-                expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta, params.stateAfterMove);
-            }
-            //  console.log("ACTUAL: " + JSON.stringify(move));
-            //  console.log("---------------------")
-            //  console.log("STATE BEFORE: " + JSON.stringify(params.stateBeforeMove));
-            // console.log("STATE AFTER: " + JSON.stringify(params.stateAfterMove));
-            // console.log("EXPECTED: " + JSON.stringify(expectedMove));
-            if (!angular.equals(move, expectedMove)) {
-                logDiffToConsole(move, expectedMove);
-                return false;
-            }
-        }
-        catch (e) {
-            // if there are any exceptions then the move is illegal
-            console.log("EXCEPTION ON IS MOVE OK: " + e);
+        //  console.log("ACTUAL: " + JSON.stringify(move));
+        //  console.log("---------------------")
+        //  console.log("STATE BEFORE: " + JSON.stringify(params.stateBeforeMove));
+        // console.log("STATE AFTER: " + JSON.stringify(params.stateAfterMove));
+        // console.log("EXPECTED: " + JSON.stringify(expectedMove));
+        if (!angular.equals(move, expectedMove)) {
+            //logDiffToConsole(move, expectedMove);
             return false;
         }
-        return true;
     }
-    gameLogic.isMoveOk = isMoveOk;
-})(gameLogic || (gameLogic = {}));
+    catch (e) {
+        // if there are any exceptions then the move is illegal
+        console.log("EXCEPTION ON IS MOVE OK: " + e);
+        return false;
+    }
+    return true;
+}
+exports.isMoveOk = isMoveOk;
