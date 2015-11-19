@@ -54,6 +54,7 @@ module game {
     $rootScope.yourPlayerIndex = params.yourPlayerIndex;
     $rootScope.turnIndex = params.turnIndexAfterMove;
     $rootScope.hasGameEnded = false;
+    $rootScope.selectedTile = undefined;
 
     //Reset caches
     populateCaches(0, 0, undefined, undefined);
