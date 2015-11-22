@@ -9,18 +9,44 @@ module.exports = function(grunt) {
         singleRun: true
       }
     },
+    copy: {
+      imgs: {
+        expand: true,
+        src: 'imgs/*.*',
+        dest: 'dist/'
+      }
+    },
     concat: {
       options: {
         separator: ';',
       },
-      dist: {
+      js: {
         src: [
           'ts_output_readonly_do_NOT_change_manually/src/gameLogic.js',
           'ts_output_readonly_do_NOT_change_manually/src/game.js',
           'ts_output_readonly_do_NOT_change_manually/src/aiService.js'],
-        dest: 'dist/everything.js',
+        dest: 'dist/js/everything.js',
+      },
+      css: {
+        src: 'css/*.css',
+        dest: 'dist/css/everything.min.css', // It will be minified by postcss, which overwrites the file.
       },
     },
+    postcss: {
+     options: {
+       map: {
+         inline: false, // save all sourcemaps as separate files...
+         annotation: 'dist/css/maps/' // ...to the specified directory
+       },
+       processors: [
+         require('autoprefixer')(), // add vendor prefixes
+         require('cssnano')() // minify the result
+       ]
+     },
+     dist: {
+       src: 'dist/css/everything.min.css'
+     }
+   },
     uglify: {
       options: {
         sourceMap: true,
@@ -34,7 +60,7 @@ module.exports = function(grunt) {
     processhtml: {
       dist: {
         files: {
-          'index.min.html': ['index.html']
+          'dist/index.min.html': ['index.html']
         }
       }
     },
@@ -91,12 +117,12 @@ module.exports = function(grunt) {
             'imgs/player/image1.svg'
           ],
           network: [
-            'dist/everything.min.js.map',
-            'dist/everything.js'
+            'js/everything.min.js.map',
+            'js/everything.js'
           ],
           timestamp: true
         },
-        dest: 'game.appcache',
+        dest: 'dist/index.min.appcache',
         src: []
       }
     },
@@ -133,7 +159,8 @@ module.exports = function(grunt) {
   // Default task(s).
   grunt.registerTask('default', [
       'karma',
-      'concat', 'uglify',
+      'copy',
+      'concat', 'postcss', 'uglify',
       'processhtml', 'manifest',
       'http-server', 'protractor']);
 
