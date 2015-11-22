@@ -836,6 +836,10 @@ var gameLogic;
     }
     game.getFinalScore = getFinalScore;
     function getPlayerIconSource(player) {
+        //Check if player has an avatar image and it is not the unknown image
+        if (state && state.playersInfo && state.playersInfo[player] && state.playersInfo[player].avatarImageUrl && state.playersInfo[player].avatarImageUrl != 'http://www.multiplayer-gaming.com/v1/dist/imgs/autoMatchAvatar.png') {
+            return state.playersInfo[player].avatarImageUrl;
+        }
         var imageNumber = player % 2; //2 is chosen because there are only two images.
         if (imageNumber < 0 || imageNumber === -0) {
             imageNumber = 0;
