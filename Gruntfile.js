@@ -78,7 +78,7 @@ module.exports = function(grunt) {
             'http://yoav-zibin.github.io/emulator/dist/turnBasedServices.3.min.js',
             'http://yoav-zibin.github.io/emulator/main.css',
             'dist/everything.min.js',
-            'game.css',
+            'css/everything.min.css',
             'imgs/HelpSlide1.png',
             'imgs/HelpSlide2.png',
             'imgs/HelpSlide3.png',
