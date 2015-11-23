@@ -14,6 +14,16 @@ module.exports = function(grunt) {
         expand: true,
         src: 'imgs/*.*',
         dest: 'dist/'
+      },
+      imgs: {
+        expand: true,
+        src: 'imgs/dominoes/*.*',
+        dest: 'dist/'
+      },
+      imgs: {
+        expand: true,
+        src: 'imgs/player/*.*',
+        dest: 'dist/'
       }
     },
     concat: {
