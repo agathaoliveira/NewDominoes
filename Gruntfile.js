@@ -94,7 +94,7 @@ module.exports = function(grunt) {
             'imgs/HelpSlide4.png',
             'imgs/HelpSlide5.png',
             'imgs/HelpSlide6.png',
-            'imgs/helper.png',
+            'imgs/helper.svg',
             'imgs/image.svg',
             'imgs/dominoes/domino-0-0.svg',
             'imgs/dominoes/domino-0-1.svg',
@@ -134,7 +134,7 @@ module.exports = function(grunt) {
           ],
           timestamp: true
         },
-        dest: 'dist/index.min.appcache',
+        dest: 'dist/game.appcache',
         src: []
       }
     },
