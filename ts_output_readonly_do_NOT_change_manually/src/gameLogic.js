@@ -322,11 +322,11 @@ var gameLogic;
             else {
                 expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta, params.stateAfterMove);
             }
-            console.log("ACTUAL: " + JSON.stringify(move));
-            console.log("---------------------");
+            // console.log("ACTUAL: " + JSON.stringify(move));
+            // console.log("---------------------")
             //  console.log("STATE BEFORE: " + JSON.stringify(params.stateBeforeMove));
             // console.log("STATE AFTER: " + JSON.stringify(params.stateAfterMove));
-            console.log("EXPECTED: " + JSON.stringify(expectedMove));
+            //  console.log("EXPECTED: " + JSON.stringify(expectedMove));
             if (!angular.equals(move, expectedMove)) {
                 //logDiffToConsole(move, expectedMove);
                 return false;
