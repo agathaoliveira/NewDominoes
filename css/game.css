@@ -44,6 +44,13 @@ fieldset[disabled] .btn.active {
   background-color: #ffffff;
 }
 
+.modal-content {
+    background-color: #363230;
+    color: white;
+    border-color: #121111;
+    background-image: url("../imgs/image.svg");
+}
+
 .r {
   border-right: 4pt solid black;
 }
@@ -55,9 +62,15 @@ fieldset[disabled] .btn.active {
   opacity: 0.8;
 }
 
-.helper {
-  width: 100%;
+/*.helper {
+  width: 80%;
   height: 100%;
+}*/
+
+.helpIcon {
+  width: 80%;
+  height: 100%;
+  vertical-align: bottom;
 }
 
 .helpImage {
