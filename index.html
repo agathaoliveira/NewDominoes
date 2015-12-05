@@ -178,7 +178,7 @@
   <div class="currentPlayer">
       <button id="passbtn" type="button" class="btn" ng-click="game.passPlay()" ng-if="game.isPassAllowed(yourPlayerIndex)">{{ 'PASS' | translate }}</button>
       <img ng-src="{{ game.getPlayerIconSource(yourPlayerIndex) }}" class="currentPlayerIcon">
-      <h2 class="scoreText" ng-if="hasGameEnded">Score: {{ game.getFinalScore(yourPlayerIndex) }}</h5>
+      <h2 class="scoreText" ng-if="hasGameEnded">{{ 'SCORE' | translate }}: {{ game.getFinalScore(yourPlayerIndex) }}</h5>
       <img ng-repeat="tile in game.getNumberOfTilesForPlayer(yourPlayerIndex)"
       ng-src="{{ game.getTileImageSourceForPlayer(yourPlayerIndex, tile) }}"
       ng-click="game.registerSelectedPlayerTile(tile)"
