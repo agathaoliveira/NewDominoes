@@ -33,7 +33,7 @@ var gameLogic;
         board.leftMost = playedTile.tileKey;
     }
     function addTileToHand(player, tileKey) {
-        player.hand.push(tileKey);
+        player.hand.unshift(tileKey);
     }
     function removeTileFromHand(player, tileKey) {
         var index = player.hand.indexOf(tileKey, 0);
@@ -322,11 +322,11 @@ var gameLogic;
             else {
                 expectedMove = createMove(stateBeforeMove, turnIndexBeforeMove, params.stateAfterMove.delta, params.stateAfterMove);
             }
-            //  console.log("ACTUAL: " + JSON.stringify(move));
-            //  console.log("---------------------")
+            console.log("ACTUAL: " + JSON.stringify(move));
+            console.log("---------------------");
             //  console.log("STATE BEFORE: " + JSON.stringify(params.stateBeforeMove));
             // console.log("STATE AFTER: " + JSON.stringify(params.stateAfterMove));
-            // console.log("EXPECTED: " + JSON.stringify(expectedMove));
+            console.log("EXPECTED: " + JSON.stringify(expectedMove));
             if (!angular.equals(move, expectedMove)) {
                 //logDiffToConsole(move, expectedMove);
                 return false;
@@ -334,7 +334,7 @@ var gameLogic;
         }
         catch (e) {
             // if there are any exceptions then the move is illegal
-            //  console.log("EXCEPTION ON IS MOVE OK: " + e);
+            console.log("EXCEPTION ON IS MOVE OK: " + e);
             return false;
         }
         return true;

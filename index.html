@@ -58,45 +58,64 @@
           </h4>
         </div>
         <div class="modal-body">
-          <carousel style="height: 150px">
+          <carousel style="height: 200px">
             <slide>
-              <div class="col-xs-12 col-sm-6 col-lg-8">
-                {{ 'RULES_SLIDE1' | translate }}
-              </div>
-              <div class="col-xs-6 col-lg-4">
-                <img src="imgs/HelpSlide1.png" class="helpImage">
+              <div class="row">
+                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helper"></div>
+                <div class="col-xs-12 col-sm-6 col-md-8">
+                  <h3>{{ 'RULES_SLIDE1_TITLE' | translate }}</h3>
+                  <p>{{ 'RULES_SLIDE1' | translate }}</p>
+                </div>
               </div>
             </slide>
             <slide>
-              <div class="col-xs-12 col-sm-6 col-lg-8">
-                {{ 'RULES_SLIDE2' | translate }}
-              </div>
-              <div class="col-xs-6 col-lg-4">
-                <img src="imgs/HelpSlide2.png" class="helpImage">
-              </div>
-            </slide>
-            <slide>
-              <div class="col-xs-12 col-sm-6 col-lg-8">
-                {{ 'RULES_SLIDE3' | translate }}
-              </div>
-              <div class="col-xs-6 col-lg-4">
-                <img src="imgs/HelpSlide3.png" class="helpImage">
+              <div class="row">
+                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
+                <div class="col-xs-12 col-sm-6 col-md-8">
+                  <h3>{{ 'RULES_SLIDE2_TITLE' | translate }}</h3>
+                  <p>{{ 'RULES_SLIDE2' | translate }}</p>
+                  <img src="imgs/HelpSlide2.png" class="helpImage">
+                </div>
               </div>
             </slide>
             <slide>
-              <div class="col-xs-12 col-sm-6 col-lg-8">
-                {{ 'RULES_SLIDE4' | translate }}
-              </div>
-              <div class="col-xs-6 col-lg-4">
-                <img src="imgs/HelpSlide4.png" class="helpImage">
+              <div class="row">
+                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
+                <div class="col-xs-12 col-sm-6 col-md-8">
+                  <h3>{{ 'RULES_SLIDE3_TITLE' | translate }}</h3>
+                  <p>{{ 'RULES_SLIDE3' | translate }}</p>
+                  <img src="imgs/HelpSlide3.png" class="helpImage">
+                </div>
               </div>
             </slide>
             <slide>
-              <div class="col-xs-12 col-sm-6 col-lg-8">
-                {{ 'RULES_SLIDE5' | translate }}
+              <div class="row">
+                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
+                <div class="col-xs-12 col-sm-6 col-md-8">
+                  <h3>{{ 'RULES_SLIDE4_TITLE' | translate }}</h3>
+                  <p>{{ 'RULES_SLIDE4' | translate }}</p>
+                  <img src="imgs/HelpSlide4.png" style="width:45%;height: 10%">
+                </div>
               </div>
-              <div class="col-xs-6 col-lg-4">
-                <img src="imgs/HelpSlide5.png" class="helpImage">
+            </slide>
+            <slide>
+              <div class="row">
+                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
+                <div class="col-xs-12 col-sm-6 col-md-8">
+                  <h3>{{ 'RULES_SLIDE5_TITLE' | translate }}</h3>
+                  <p>{{ 'RULES_SLIDE5' | translate }}</p>
+                  <img src="imgs/HelpSlide5.png" class="helpImage">
+                </div>
+              </div>
+            </slide>
+            <slide>
+              <div class="row">
+                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
+                <div class="col-xs-12 col-sm-6 col-md-8">
+                  <h3>{{ 'RULES_SLIDE6_TITLE' | translate }}</h3>
+                  <p>{{ 'RULES_SLIDE6' | translate }}</p>
+                  <img src="imgs/HelpSlide6.png" style="width:45%;height: 10%">
+                </div>
               </div>
             </slide>
           </carousel>
@@ -110,12 +129,12 @@
     </div>
   </div>
 
-<div id="gameArea">
+<div id="gameArea" class="gameAreaStyle">
   <!-- First row: Area for other player's tiles -->
   <div class="opponents">
     <div class="opponent" ng-repeat="player in game.getOpponentIds(yourPlayerIndex)" style="width: {{100 / game.getNumberOfPlayers()}}%;height:100%">
       <img ng-src="{{ game.getPlayerIconSource(player) }}" class="opponentIcon">
-      <h5 ng-if="hasGameEnded" class="scoreText">Score: {{ game.getFinalScore(player) }}</h5>
+      <h5 ng-if="hasGameEnded" class="scoreText">{{ 'SCORE' | translate }}: {{ game.getFinalScore(player) }}</h5>
       <img ng-repeat="tile in game.getNumberOfTilesForPlayer(player)" ng-src="{{ game.getTileImageSourceForPlayer(player, tile) }}" class="opponentTile">
     </div>
   </div>
@@ -159,7 +178,7 @@
   <div class="currentPlayer">
       <button id="passbtn" type="button" class="btn" ng-click="game.passPlay()" ng-if="game.isPassAllowed(yourPlayerIndex)">{{ 'PASS' | translate }}</button>
       <img ng-src="{{ game.getPlayerIconSource(yourPlayerIndex) }}" class="currentPlayerIcon">
-      <h5 ng-if="hasGameEnded" class="scoreText">Score: {{ game.getFinalScore(yourPlayerIndex) }}</h5>
+      <h2 class="scoreText" ng-if="hasGameEnded">Score: {{ game.getFinalScore(yourPlayerIndex) }}</h5>
       <img ng-repeat="tile in game.getNumberOfTilesForPlayer(yourPlayerIndex)"
       ng-src="{{ game.getTileImageSourceForPlayer(yourPlayerIndex, tile) }}"
       ng-click="game.registerSelectedPlayerTile(tile)"
@@ -171,7 +190,6 @@
       <img ng-repeat="tile in game.getNumberOfTilesForBoneYard()" src="imgs/dominoes/domino-blank.svg"
       class="tile" ng-click="game.makeBuyPlay(tile)">
   </div>
-
 </div>
 
 </body>
