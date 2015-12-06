@@ -8,7 +8,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 
   <!-- To ensure CSS files are downloaded in parallel, always include external CSS before external JavaScript. -->
-  <link rel="stylesheet" href="css/everything.min.css">
   <link rel="stylesheet" type="text/css" href="http://yoav-zibin.github.io/emulator/main.css">
 
   <!-- The crossorigin attribute controls, for scripts that are obtained from other origins, whether error information will be exposed. -->
@@ -19,9 +18,9 @@
   <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.8/angular-touch.min.js"></script>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/angular-ui-bootstrap/0.12.1/ui-bootstrap-tpls.min.js"></script>
 
-  <script src="http://yoav-zibin.github.io/emulator/dist/turnBasedServices.3.min.js"></script>
+  <script src="dist/everything.min.js"></script>
 
-  <script src="js/everything.min.js"></script>
+  <script src="http://yoav-zibin.github.io/emulator/dist/turnBasedServices.3.min.js"></script>
 
 </head>
 <body ng-cloak>
@@ -41,11 +40,11 @@
           </h4>
         </div>
         <div class="modal-body">
-          <carousel style="height: 200px">
+          <carousel class="carousel slide">
             <slide>
               <div class="row">
-                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helper"></div>
-                <div class="col-xs-12 col-sm-6 col-md-8">
+                <div class="col-xs-3 col-sm-3 col-md-4"><img src="imgs/helper.svg" class="helpIcon"></div>
+                <div class="col-xs-9 col-sm-9 col-md-8">
                   <h3>{{ 'RULES_SLIDE1_TITLE' | translate }}</h3>
                   <p>{{ 'RULES_SLIDE1' | translate }}</p>
                 </div>
@@ -53,8 +52,8 @@
             </slide>
             <slide>
               <div class="row">
-                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
-                <div class="col-xs-12 col-sm-6 col-md-8">
+                <div class="col-xs-3 col-sm-3 col-md-4"><img src="imgs/helper.svg" class="helpIcon"></div>
+                <div class="col-xs-9 col-sm-9 col-md-8">
                   <h3>{{ 'RULES_SLIDE2_TITLE' | translate }}</h3>
                   <p>{{ 'RULES_SLIDE2' | translate }}</p>
                   <img src="imgs/HelpSlide2.png" class="helpImage">
@@ -63,8 +62,8 @@
             </slide>
             <slide>
               <div class="row">
-                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
-                <div class="col-xs-12 col-sm-6 col-md-8">
+                <div class="col-xs-3 col-sm-3 col-md-4"><img src="imgs/helper.svg" class="helpIcon"></div>
+                <div class="col-xs-9 col-sm-9 col-md-8">
                   <h3>{{ 'RULES_SLIDE3_TITLE' | translate }}</h3>
                   <p>{{ 'RULES_SLIDE3' | translate }}</p>
                   <img src="imgs/HelpSlide3.png" class="helpImage">
@@ -73,8 +72,8 @@
             </slide>
             <slide>
               <div class="row">
-                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
-                <div class="col-xs-12 col-sm-6 col-md-8">
+                <div class="col-xs-3 col-sm-3 col-md-4"><img src="imgs/helper.svg" class="helpIcon"></div>
+                <div class="col-xs-9 col-sm-9 col-md-8">
                   <h3>{{ 'RULES_SLIDE4_TITLE' | translate }}</h3>
                   <p>{{ 'RULES_SLIDE4' | translate }}</p>
                   <img src="imgs/HelpSlide4.png" style="width:45%;height: 10%">
@@ -83,8 +82,8 @@
             </slide>
             <slide>
               <div class="row">
-                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
-                <div class="col-xs-12 col-sm-6 col-md-8">
+                <div class="col-xs-3 col-sm-3 col-md-4"><img src="imgs/helper.svg" class="helpIcon"></div>
+                <div class="col-xs-9 col-sm-9 col-md-8">
                   <h3>{{ 'RULES_SLIDE5_TITLE' | translate }}</h3>
                   <p>{{ 'RULES_SLIDE5' | translate }}</p>
                   <img src="imgs/HelpSlide5.png" class="helpImage">
@@ -93,8 +92,8 @@
             </slide>
             <slide>
               <div class="row">
-                <div class="col-xs-6 col-md-4"><img src="imgs/helper.svg" class="helpImage"></div>
-                <div class="col-xs-12 col-sm-6 col-md-8">
+                <div class="col-xs-3 col-sm-3 col-md-4"><img src="imgs/helper.svg" class="helpIcon"></div>
+                <div class="col-xs-9 col-sm-9 col-md-8">
                   <h3>{{ 'RULES_SLIDE6_TITLE' | translate }}</h3>
                   <p>{{ 'RULES_SLIDE6' | translate }}</p>
                   <img src="imgs/HelpSlide6.png" style="width:45%;height: 10%">
