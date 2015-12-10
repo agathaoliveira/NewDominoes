@@ -329,6 +329,22 @@ var gameLogic;
             //  console.log("EXPECTED: " + JSON.stringify(expectedMove));
             if (!angular.equals(move, expectedMove)) {
                 //logDiffToConsole(move, expectedMove);
+                //For old versions of the app, we were adding the tile to the end of the hand instead of beginning
+                if (params.stateAfterMove.delta.play === Play.BUY) {
+                    for (var i = 0; i < expectedMove.length; i++) {
+                        var op = expectedMove[i];
+                        if (op.set && op.set.key === "players") {
+                            //Add tile to the end of hand instead of beginning
+                            var players = op.set.value;
+                            var firstTile = players[params.turnIndexBeforeMove].hand.shift();
+                            players[params.turnIndexBeforeMove].hand.push(firstTile);
+                            if (angular.equals(move, expectedMove)) {
+                                return true;
+                            }
+                            break;
+                        }
+                    }
+                }
                 return false;
             }
         }
